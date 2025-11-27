@@ -3,8 +3,10 @@ import "reflect-metadata";
 import { AppDataSource } from "./config/data-source";
 import authRoutes from "./routes/auth.routes";
 
+import cors from "cors";
 const app = express();
 const PORT = process.env.PORT || 5000;
+app.use(cors());
 
 app.use(express.json());
 
