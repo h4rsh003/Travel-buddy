@@ -1,12 +1,14 @@
 import express from "express";
 import "reflect-metadata";
 import { AppDataSource } from "./config/data-source";
+import authRoutes from "./routes/auth.routes";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(express.json());
 
+app.use("/api/auth", authRoutes);
 app.get("/", (req, res) => {
   res.send("Travel Buddy Backend is Running! 🚀");
 });
