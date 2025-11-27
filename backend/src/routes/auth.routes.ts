@@ -6,4 +6,7 @@ const router = Router();
 // Route: POST /api/auth/register
 router.post("/register", AuthController.register);
 
+// Route: POST /api/auth/login
+router.post("/login", AuthController.login);
+
 export default router;
