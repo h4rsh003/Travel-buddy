@@ -13,4 +13,9 @@ export class AuthValidation {
     email: z.string().email(),
     password: z.string().min(1, { message: "Password is required" }),
   });
+  static googleLoginSchema = z.object({
+    email: z.string().email(),
+    name: z.string().min(1),
+    googleId: z.string().optional() // Optional, mostly for future use
+  });
 }
