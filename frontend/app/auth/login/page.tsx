@@ -5,6 +5,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { FcGoogle } from "react-icons/fc";
+import { signIn } from "next-auth/react"; 
+import { useRouter } from "next/navigation";
 
 // 1. Define Validation Schema (Matches Backend!)
 const loginSchema = z.object({
@@ -15,6 +17,7 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
+    const router = useRouter();
   // 2. Setup Form Hook
   const {
     register,
@@ -25,9 +28,24 @@ export default function LoginPage() {
   });
 
   // 3. Handle Form Submission
-  const onSubmit = async (data: LoginFormValues) => {
-    console.log("Form Data:", data);
-    // TODO: Connect to NextAuth later
+const onSubmit = async (data: LoginFormValues) => {
+    try {
+      const result = await signIn("credentials", {
+        redirect: false, // Don't redirect automatically, we handle it
+        email: data.email,
+        password: data.password,
+      });
+
+      if (result?.error) {
+        alert("Login Failed! Check email or password.");
+      } else {
+        alert("Login Successful! 🚀");
+        router.push("/"); // Redirect to Home Page
+      }
+    } catch (error) {
+      console.log(error);
+      alert("Something went wrong");
+    }
   };
 
   return (
