@@ -36,4 +36,27 @@ export class UserController {
       return res.status(500).json({ message: "Internal Server Error" });
     }
   }
+  // Get Current User Profile
+  static async getProfile(req: Request, res: Response): Promise<any> {
+    try {
+      const { userId } = req.body.user; // From Middleware
+
+      const userRepository = AppDataSource.getRepository(User);
+      
+      const user = await userRepository.findOne({ 
+        where: { id: userId },
+        // Select specific fields (security: don't send password)
+        select: ["id", "name", "email", "bio", "location", "interests", "profile_image"] 
+      });
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      return res.status(200).json(user);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
 }

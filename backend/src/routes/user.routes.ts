@@ -8,4 +8,7 @@ const router = Router();
 // Protected by authMiddleware
 router.put("/profile", authMiddleware, UserController.updateProfile);
 
+// GET /api/users/profile
+router.get("/profile", authMiddleware, UserController.getProfile);
+
 export default router;
