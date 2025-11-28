@@ -1,291 +1,203 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import axios from "axios";
-import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState, useCallback } from "react";
+import { useForm } from "react-hook-form";
+import axios from "axios";
 
-type TripDetails = {
-  id: number;
-  destination: string;
-  startDate: string;
-  endDate: string;
-  budget: number;
-  description: string;
-  user: {
-    id: number;
-    name: string;
-    email: string;
-    bio?: string;
-  };
-  joinRequests: {
-    userId: number;
-    status: "pending" | "accepted" | "rejected";
-  }[];
+// 1. Define Types (Fixes 'any')
+type UserProfile = {
+  name: string;
+  email: string;
+  bio?: string;
+  location?: string;
+  interests?: string[];
 };
 
-export default function TripDetailsPage() {
-  const { id } = useParams();
-  const { data: session } = useSession();
+type ProfileFormValues = {
+  name: string;
+  bio: string;
+  location: string;
+  interests: string;
+};
+
+export default function ProfilePage() {
+  const { data: session, status } = useSession();
   const router = useRouter();
-  
-  const [trip, setTrip] = useState<TripDetails | null>(null);
   const [loading, setLoading] = useState(true);
-  
-  // State for button loading
-  const [requesting, setRequesting] = useState(false);
-  // State to track if request was sent successfully
-  const [hasRequested, setHasRequested] = useState(false);
-  const [isAccepted, setIsAccepted] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [userData, setUserData] = useState<UserProfile | null>(null);
 
-  // Fetch Trip Data
-  useEffect(() => {
-    const fetchTrip = async () => {
-      try {
-        // ✅ FIXED: Use Environment Variable
-        const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/trips/${id}`);
-        setTrip(res.data);
-      } catch (error) {
-        console.error("Error fetching trip:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (id) fetchTrip();
-  }, [id]);
+  const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm<ProfileFormValues>();
 
-  // Check status on load
-  useEffect(() => {
-    if (trip && session?.user) {
-        // @ts-expect-error -- Accessing session ID safely from NextAuth
-        const myId = session.user.id;
-        
-        const myRequest = trip.joinRequests?.find((req) => req.userId === myId);
+  const fetchProfile = useCallback(async () => {
+    if (!session?.user) return;
+    try {
+      // @ts-expect-error -- Access token is not yet typed in NextAuth
+      let token = session.user.accessToken;
+      if (typeof token === "string") token = token.replace(/"/g, "");
 
-        if (myRequest) {
-            setHasRequested(true);
-            if (myRequest.status === "accepted") {
-                setIsAccepted(true);
-            }
-        } else {
-            setHasRequested(false); 
-        }
+      const apiUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/profile`;
+      console.log("🔍 Fetching Profile from:", apiUrl); // 👈 Check Console for this!
+
+      const res = await axios.get(apiUrl, {
+         headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      setUserData(res.data);
+      
+      // Pre-fill form
+      reset({
+        name: res.data.name || "",
+        bio: res.data.bio || "",
+        location: res.data.location || "",
+        interests: res.data.interests ? res.data.interests.join(", ") : "",
+      });
+    } catch (error) {
+      console.error("❌ Error fetching profile:", error);
+    } finally {
+      setLoading(false);
     }
-  }, [trip, session]);
+  }, [session, reset]);
 
-  // 1. Handle Join Request
-  const handleJoinRequest = async () => {
-    if (!session) {
-      alert("Please login to join this trip!");
+  // Fetch Profile Data
+  useEffect(() => {
+    if (status === "unauthenticated") {
       router.push("/auth/login");
       return;
     }
+    
+    if (session?.user) {
+      fetchProfile();
+    }
+  }, [status, router, session, fetchProfile]);
 
+  const onSubmit = async (data: ProfileFormValues) => {
+    if (!session?.user) return;
     try {
-      setRequesting(true);
+        const interestsArray = data.interests.split(",").map((s) => s.trim());
+          
+        // @ts-expect-error -- Access token fix
+        let token = session.user.accessToken;
+        if (typeof token === "string") token = token.replace(/"/g, "");
 
-      // @ts-expect-error -- Access token not typed in NextAuth default types
-      let token = session.user.accessToken;
-      if (typeof token === "string") {
-        token = token.replace(/"/g, ""); 
-      }
-
-      // ✅ FIXED: Use Environment Variable
-      await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/requests/send`, 
-        { tripId: Number(id) },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      // ✅ SUCCESS! Update UI
-      setHasRequested(true); 
-
-    } catch (error) {
-      console.error(error);
-      
-      // 🛠️ FIX: Use axios.isAxiosError instead of 'any'
-      if (axios.isAxiosError(error) && error.response) {
-         if (error.response.status === 409) {
-            setHasRequested(true);
-            alert("You have already requested to join this trip.");
-         } else {
-            alert(error.response.data.message);
-         }
-      } else {
-         alert("Failed to send request.");
-      }
-    } finally {
-      setRequesting(false);
+        await axios.put(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/profile`, 
+            { 
+              name: data.name,
+              bio: data.bio, 
+              location: data.location, 
+              interests: interestsArray 
+            },
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+        
+        alert("Profile Updated Successfully! 🌟");
+        setIsEditing(false); 
+        fetchProfile(); 
+    } catch (e) { 
+        console.error(e); 
+        alert("Failed to update profile"); 
     }
   };
 
-  // 2. Handle Cancel Request
-  const handleCancelRequest = async () => {
-    if (!confirm("Are you sure you want to withdraw your request?")) return;
-
-    try {
-      setRequesting(true);
-      // @ts-expect-error -- Access token not typed in NextAuth default types
-      let token = session.user.accessToken;
-      if (typeof token === "string") token = token.replace(/"/g, "");
-
-      // ✅ FIXED: Use Environment Variable
-      await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/requests/${id}`, {
-         headers: { Authorization: `Bearer ${token}` } 
-      });
-
-      setHasRequested(false); 
-      setIsAccepted(false);
-      alert("Request Cancelled.");
-    } catch (error) {
-      console.error(error);
-      alert("Failed to cancel request.");
-    } finally {
-      setRequesting(false);
-    }
-  };
-
-  // 3. Handle Delete Trip
-  const handleDeleteTrip = async () => {
-    if (!confirm("Are you sure you want to delete this trip? This cannot be undone.")) return;
-
-    try {
-      // @ts-expect-error -- Access token not typed in NextAuth default types
-      let token = session.user.accessToken;
-      if (typeof token === "string") token = token.replace(/"/g, "");
-
-      // ✅ FIXED: Use Environment Variable
-      await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/trips/${id}`, {
-         headers: { Authorization: `Bearer ${token}` }
-      });
-
-      alert("Trip Deleted Successfully.");
-      router.push("/"); 
-    } catch (error) {
-      console.error(error);
-      alert("Failed to delete trip.");
-    }
-  };
-
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500 text-lg animate-pulse">Loading Trip Details...</p>
-    </div>
-  );
-
-  if (!trip) return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-        <p className="text-red-500 text-xl font-bold">Trip not found!</p>
-        <Link href="/" className="text-blue-600 hover:underline">Go Back Home</Link>
-    </div>
-  );
-
-  // Check if current user is the owner
-  // @ts-expect-error -- session user id typing mismatch with backend response
-  const isOwner = session?.user?.id === trip.user.id;
+  if (status === "loading" || loading) return <p className="text-center mt-10">Loading Profile...</p>;
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
-        
-        {/* Header Image - 🛠️ FIX: Updated to bg-linear-to-r for Tailwind v4 */}
-        <div className="h-56 bg-linear-to-r from-blue-600 to-indigo-600 flex items-center justify-center">
-            <h1 className="text-4xl md:text-5xl font-bold text-white tracking-wide shadow-sm">
-                {trip.destination}
-            </h1>
-        </div>
-
-        <div className="p-8">
-          {/* Creator Info */}
-          <div className="flex items-center gap-4 mb-8">
-            <div className="h-14 w-14 rounded-full bg-gray-100 border-2 border-white shadow-sm flex items-center justify-center text-xl font-bold text-gray-600">
-                {trip.user.name.charAt(0)}
-            </div>
-            <div>
-                <p className="text-gray-900 font-bold text-lg">{trip.user.name}</p>
-                {isAccepted ? (
-                    <div className="mt-1">
-                        <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded">ACCEPTED ✅</span>
-                        <p className="text-blue-600 font-medium text-sm mt-1">
-                            📧 {trip.user.email}
-                        </p>
+        <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            
+            {/* Header / Cover Area */}
+            <div className="bg-blue-600 h-32 relative">
+                <div className="absolute -bottom-10 left-8">
+                    <div className="h-24 w-24 bg-white rounded-full p-1 shadow-lg">
+                        <div className="h-full w-full bg-gray-200 rounded-full flex items-center justify-center text-3xl font-bold text-gray-500">
+                             {userData?.name?.charAt(0)}
+                        </div>
                     </div>
+                </div>
+            </div>
+
+            <div className="pt-12 px-8 pb-8">
+                <div className="flex justify-between items-start">
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900">{userData?.name}</h1>
+                        <p className="text-gray-500 text-sm">{userData?.email}</p>
+                    </div>
+                    <button 
+                        onClick={() => setIsEditing(!isEditing)}
+                        className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
+                            isEditing 
+                            ? "bg-gray-100 text-gray-700 hover:bg-gray-200" 
+                            : "bg-blue-600 text-white hover:bg-blue-700"
+                        }`}
+                    >
+                        {isEditing ? "Cancel" : "Edit Profile"}
+                    </button>
+                </div>
+
+                <hr className="my-6 border-gray-100"/>
+
+                {isEditing ? (
+                    // 🟢 EDIT MODE
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 animate-fade-in">
+                         <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
+                            <input {...register("name")} type="text" className="w-full rounded-lg border border-gray-300 p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none transition" />
+                         </div>
+                         <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-1">Bio</label>
+                            <textarea {...register("bio")} rows={3} className="w-full rounded-lg border border-gray-300 p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none transition" />
+                         </div>
+                         <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-1">Location</label>
+                            <input {...register("location")} type="text" className="w-full rounded-lg border border-gray-300 p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none transition" />
+                         </div>
+                         <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-1">Interests</label>
+                            <input {...register("interests")} type="text" className="w-full rounded-lg border border-gray-300 p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none transition" />
+                            <p className="text-xs text-gray-500 mt-1">Separate with commas (e.g. Hiking, Music)</p>
+                         </div>
+                         <div className="flex justify-end pt-2">
+                            <button type="submit" disabled={isSubmitting} className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition disabled:bg-green-400">
+                                {isSubmitting ? "Saving..." : "Save Changes"}
+                            </button>
+                         </div>
+                    </form>
                 ) : (
-                    <p className="text-gray-500 text-sm">Trip Organizer</p>
+                    // 🔵 VIEW MODE
+                    <div className="space-y-6">
+                        <div>
+                            <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">About</h3>
+                            <p className="text-gray-700 mt-1 whitespace-pre-wrap">
+                                {userData?.bio || "No bio added yet."}
+                            </p>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Location</h3>
+                                <p className="text-gray-700 mt-1 font-medium">📍 {userData?.location || "Not set"}</p>
+                            </div>
+                            <div>
+                                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Interests</h3>
+                                <div className="flex flex-wrap gap-2 mt-2">
+                                    {userData?.interests && userData.interests.length > 0 ? (
+                                        userData.interests.map((tag: string, i: number) => (
+                                            <span key={i} className="px-3 py-1 bg-blue-50 text-blue-700 text-xs rounded-full font-medium">
+                                                {tag}
+                                            </span>
+                                        ))
+                                    ) : (
+                                        <span className="text-gray-500 text-sm">No interests added.</span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 )}
             </div>
-          </div>
-
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-8 border-y border-gray-100 py-6 bg-gray-50/50 rounded-lg px-4">
-            <div>
-                <p className="text-gray-400 text-xs uppercase font-bold tracking-wider">Budget</p>
-                <p className="text-2xl font-bold text-green-600">₹{trip.budget.toLocaleString()}</p>
-            </div>
-            <div>
-                <p className="text-gray-400 text-xs uppercase font-bold tracking-wider">Start Date</p>
-                <p className="text-lg font-medium text-gray-900">{trip.startDate}</p>
-            </div>
-            <div>
-                <p className="text-gray-400 text-xs uppercase font-bold tracking-wider">End Date</p>
-                <p className="text-lg font-medium text-gray-900">{trip.endDate}</p>
-            </div>
-          </div>
-
-          {/* Description */}
-          <div className="mb-10">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">About the Trip</h3>
-            <div className="prose prose-blue text-gray-600 leading-relaxed whitespace-pre-wrap">
-                {trip.description}
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-gray-100">
-             {isOwner ? (
-                // 🔴 OWNER VIEW: Show Delete Button
-                <>
-                    <button disabled className="flex-1 bg-gray-100 text-gray-500 py-3 rounded-lg font-bold cursor-not-allowed border border-gray-200">
-                        You Own This Trip
-                    </button>
-                    
-                    <button 
-                        onClick={handleDeleteTrip}
-                        className="px-6 py-3 bg-red-50 text-red-600 border border-red-200 rounded-lg font-bold hover:bg-red-100 transition"
-                    >
-                        Delete Trip 🗑️
-                    </button>
-                </>
-             ) : hasRequested ? (
-                // 🟢 JOINER VIEW: Already Requested
-                <button 
-                    onClick={handleCancelRequest}
-                    disabled={requesting}
-                    className="flex-1 bg-red-50 text-red-600 border border-red-200 py-3 rounded-lg font-bold hover:bg-red-100 transition"
-                >
-                    {requesting ? "Cancelling..." : "Cancel Request ❌"}
-                </button>
-             ) : (
-                // 🔵 JOINER VIEW: Can Request
-                <button 
-                    onClick={handleJoinRequest}
-                    disabled={requesting}
-                    className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition disabled:bg-blue-300 shadow-md hover:shadow-lg transform active:scale-95 duration-200"
-                >
-                    {requesting ? "Sending..." : "Request to Join 🚀"}
-                </button>
-             )}
-             
-             <Link 
-                href="/" 
-                className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 text-center transition"
-             >
-                Back to Feed
-             </Link>
-          </div>
-
         </div>
-      </div>
     </div>
   );
 }
