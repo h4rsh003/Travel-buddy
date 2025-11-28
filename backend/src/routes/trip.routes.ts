@@ -7,4 +7,7 @@ const router = Router();
 // POST /api/trips (Create a new trip)
 router.post("/", authMiddleware, TripController.createTrip);
 
+// GET /api/trips
+router.get("/", TripController.getAllTrips);
+
 export default router;

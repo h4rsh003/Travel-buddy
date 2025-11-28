@@ -44,4 +44,28 @@ export class TripController {
       return res.status(500).json({ message: "Internal Server Error" });
     }
   }
+  // Get All Trips (Public)
+  static async getAllTrips(req: Request, res: Response): Promise<any> {
+    try {
+      const tripRepository = AppDataSource.getRepository(Trip);
+
+      const trips = await tripRepository.find({
+        order: { created_at: "DESC" }, // Newest first
+        relations: ["user"], // 🔗 JOIN the User table to get name/avatar
+        select: {
+            user: {
+                id: true,
+                name: true,
+                email: true,
+                profile_image: true
+            }
+        }
+      });
+
+      return res.status(200).json(trips);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
 }
