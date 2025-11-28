@@ -4,26 +4,27 @@ import { User } from "../entities/User";
 import { UserValidation } from "../validations/user.validation";
 
 export class UserController {
+// Inside updateProfile method:
+
   static async updateProfile(req: Request, res: Response): Promise<any> {
     try {
-      const { userId } = req.body.user; // We will get this from the Token Middleware later
-      const { bio, location, interests } = req.body;
+      const { userId } = req.body.user;
+      const { bio, location, interests, name } = req.body;
 
-      // 1. Validate Input
-      const validation = UserValidation.updateProfile.safeParse({ bio, location, interests });
+      // 1. Validate Input (Update validation logic to include name)
+      const validation = UserValidation.updateProfile.safeParse({ bio, location, interests, name });
+      
       if (!validation.success) {
         return res.status(400).json({ errors: validation.error.format() });
       }
 
       const userRepository = AppDataSource.getRepository(User);
-      
-      // 2. Find User
       const user = await userRepository.findOne({ where: { id: userId } });
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
+
+      if (!user) return res.status(404).json({ message: "User not found" });
 
       // 3. Update Fields
+      if (name) user.name = name;
       if (bio) user.bio = bio;
       if (location) user.location = location;
       if (interests) user.interests = interests;
