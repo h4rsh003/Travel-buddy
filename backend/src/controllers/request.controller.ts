@@ -83,4 +83,30 @@ export class RequestController {
       return res.status(500).json({ message: "Internal Server Error" });
     }
   }
+  // Cancel/Withdraw Request
+  static async cancelRequest(req: Request, res: Response): Promise<any> {
+    try {
+      const { userId } = req.body.user; // Me
+      const { tripId } = req.params;    // The trip I want to leave
+
+      const requestRepo = AppDataSource.getRepository(JoinRequest);
+      
+      // Find my request for this trip
+      const request = await requestRepo.findOne({
+        where: { userId, tripId: Number(tripId) }
+      });
+
+      if (!request) {
+        return res.status(404).json({ message: "Request not found" });
+      }
+
+      // Delete it
+      await requestRepo.remove(request);
+
+      return res.status(200).json({ message: "Request withdrawn successfully" });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
 }
