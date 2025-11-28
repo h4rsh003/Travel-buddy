@@ -68,4 +68,34 @@ export class TripController {
       return res.status(500).json({ message: "Internal Server Error" });
     }
   }
+  // Get Single Trip by ID
+  static async getTripById(req: Request, res: Response): Promise<any> {
+    try {
+      const { id } = req.params; // Get ID from URL (e.g., /api/trips/5)
+      const tripRepository = AppDataSource.getRepository(Trip);
+
+      const trip = await tripRepository.findOne({
+        where: { id: Number(id) },
+        relations: ["user"], // Include creator details
+        select: {
+            user: {
+                id: true,
+                name: true,
+                email: true,
+                profile_image: true,
+                bio: true // Show bio in details page
+            }
+        }
+      });
+
+      if (!trip) {
+        return res.status(404).json({ message: "Trip not found" });
+      }
+
+      return res.status(200).json(trip);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
 }

@@ -41,7 +41,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gray-50">
-      
+
       {/* 🟢 HERO SECTION (Welcome + Actions) */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 flex justify-between items-center">
@@ -99,7 +99,7 @@ export default function Home() {
                       </p>
                     </div>
                   </div>
-                  
+
                   <p className="mt-4 text-gray-600 text-sm line-clamp-3">
                     {trip.description}
                   </p>
@@ -113,10 +113,13 @@ export default function Home() {
                         {trip.user.name}
                       </span>
                     </div>
-                    
-                    <button className="text-sm font-medium text-blue-600 hover:text-blue-700">
+
+                    <Link
+                      href={`/trips/${trip.id}`}
+                      className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                    >
                       View Details →
-                    </button>
+                    </Link>
                   </div>
                 </div>
               </div>
