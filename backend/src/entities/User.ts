@@ -13,6 +13,19 @@ export class User {
 
   @Column({ nullable: true }) 
   password: string;
+  
+  // 👇 NEW COLUMNS
+  @Column({ nullable: true })
+  bio: string;
+
+  @Column({ nullable: true })
+  location: string;
+
+  @Column({ nullable: true })
+  profile_image: string;
+
+  @Column("simple-array", { nullable: true })
+  interests: string[];
 
   @CreateDateColumn()
   created_at: Date;
