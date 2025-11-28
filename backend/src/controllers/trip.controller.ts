@@ -98,4 +98,35 @@ export class TripController {
       return res.status(500).json({ message: "Internal Server Error" });
     }
   }
+  // Get Logged-In User's Trips (with Join Requests)
+  static async getMyTrips(req: Request, res: Response): Promise<any> {
+    try {
+      const { userId } = req.body.user; // From Middleware
+
+      const tripRepository = AppDataSource.getRepository(Trip);
+
+      const trips = await tripRepository.find({
+        where: { userId }, // Only my trips
+        order: { created_at: "DESC" },
+        relations: ["joinRequests", "joinRequests.user"], // 🔗 Fetch requests + who sent them
+        select: {
+            joinRequests: {
+                id: true,
+                status: true,
+                user: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    profile_image: true
+                }
+            }
+        }
+      });
+
+      return res.status(200).json(trips);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
 }

@@ -46,4 +46,41 @@ export class RequestController {
       return res.status(500).json({ message: "Internal Server Error" });
     }
   }
+  // Accept or Reject Request
+  static async handleRequestStatus(req: Request, res: Response): Promise<any> {
+    try {
+      const { userId } = req.body.user; // Owner ID
+      const { requestId, status } = req.params; // /:requestId/:status
+
+      // Validate status
+      if (!["accepted", "rejected"].includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+
+      const requestRepo = AppDataSource.getRepository(JoinRequest);
+      
+      // Find request and load the Trip relation to check ownership
+      const request = await requestRepo.findOne({
+        where: { id: Number(requestId) },
+        relations: ["trip", "trip.user"]
+      });
+
+      if (!request) return res.status(404).json({ message: "Request not found" });
+
+      // Security: Only Trip Owner can accept/reject
+      if (request.trip.user.id !== userId) {
+        return res.status(403).json({ message: "You are not the owner of this trip" });
+      }
+
+      // Update Status
+      request.status = status as RequestStatus;
+      await requestRepo.save(request);
+
+      return res.status(200).json({ message: `Request ${status} successfully!` });
+
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
 }
