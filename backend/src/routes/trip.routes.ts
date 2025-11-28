@@ -19,4 +19,7 @@ router.get("/user/me", authMiddleware, TripController.getMyTrips);
 // GET /api/trips/:id (Keep this at the bottom)
 router.get("/:id", TripController.getTripById);
 
+// DELETE /api/trips/:id
+router.delete("/:id", authMiddleware, TripController.deleteTrip);
+
 export default router;

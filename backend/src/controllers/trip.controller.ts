@@ -142,4 +142,30 @@ export class TripController {
       return res.status(500).json({ message: "Internal Server Error" });
     }
   }
+  // Delete Trip
+  static async deleteTrip(req: Request, res: Response): Promise<any> {
+    try {
+      const { id } = req.params;
+      const { userId } = req.body.user; // Me
+
+      const tripRepository = AppDataSource.getRepository(Trip);
+      
+      const trip = await tripRepository.findOne({ where: { id: Number(id) } });
+
+      if (!trip) return res.status(404).json({ message: "Trip not found" });
+
+      // Security: Check Ownership
+      if (trip.userId !== userId) {
+        return res.status(403).json({ message: "You are not authorized to delete this trip" });
+      }
+
+      // Delete the trip
+      await tripRepository.remove(trip);
+
+      return res.status(200).json({ message: "Trip deleted successfully" });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
 }

@@ -29,7 +29,7 @@ export class JoinRequest {
   userId: number;
 
   // 🔗 Relation: Which trip is it for?
-  @ManyToOne(() => Trip, (trip) => trip.joinRequests)
+  @ManyToOne(() => Trip, (trip) => trip.joinRequests, { onDelete: "CASCADE" }) // 👈 Added CASCADE
   @JoinColumn({ name: "tripId" })
   trip: Trip;
 
