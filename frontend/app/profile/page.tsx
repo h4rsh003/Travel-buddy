@@ -38,7 +38,7 @@ export default function ProfilePage() {
       let token = session.user.accessToken;
       if (typeof token === "string") token = token.replace(/"/g, "");
 
-      const res = await axios.get("http://localhost:5000/api/users/profile", {
+      const res = await axios.get("process.env.NEXT_PUBLIC_BACKEND_URL/api/users/profile", {
          headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -78,7 +78,7 @@ export default function ProfilePage() {
         let token = session.user.accessToken;
         if (typeof token === "string") token = token.replace(/"/g, "");
 
-        await axios.put("http://localhost:5000/api/users/profile", 
+        await axios.put("process.env.NEXT_PUBLIC_BACKEND_URL/api/users/profile", 
             { 
               name: data.name, // 👈 Send Name to Backend
               bio: data.bio, 

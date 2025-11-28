@@ -25,7 +25,7 @@ export default function Home() {
   useEffect(() => {
     const fetchTrips = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/trips");
+        const res = await axios.get("process.env.NEXT_PUBLIC_BACKEND_URL/api/trips");
         setTrips(res.data);
       } catch (error) {
         console.error("Error fetching trips:", error);

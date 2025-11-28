@@ -41,7 +41,7 @@ export default function TripDetailsPage() {
   useEffect(() => {
     const fetchTrip = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/trips/${id}`);
+        const res = await axios.get(`process.env.NEXT_PUBLIC_BACKEND_URL/api/trips/${id}`);
         setTrip(res.data);
       } catch (error) {
         console.error("Error fetching trip:", error);
@@ -85,7 +85,7 @@ export default function TripDetailsPage() {
       let token = session.user.accessToken;
       if (typeof token === "string") token = token.replace(/"/g, "");
 
-      await axios.post("http://localhost:5000/api/requests/send", 
+      await axios.post("process.env.NEXT_PUBLIC_BACKEND_URL/api/requests/send", 
         { tripId: Number(id) },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -119,7 +119,7 @@ export default function TripDetailsPage() {
       if (typeof token === "string") token = token.replace(/"/g, "");
 
       // Call DELETE API
-      await axios.delete(`http://localhost:5000/api/requests/${id}`, {
+      await axios.delete(`process.env.NEXT_PUBLIC_BACKEND_URL/api/requests/${id}`, {
          headers: { Authorization: `Bearer ${token}` } 
       });
 
@@ -143,7 +143,7 @@ export default function TripDetailsPage() {
       let token = session.user.accessToken;
       if (typeof token === "string") token = token.replace(/"/g, "");
 
-      await axios.delete(`http://localhost:5000/api/trips/${id}`, {
+      await axios.delete(`process.env.NEXT_PUBLIC_BACKEND_URL/api/trips/${id}`, {
          headers: { Authorization: `Bearer ${token}` }
       });
 

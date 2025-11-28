@@ -37,7 +37,7 @@ export default function DashboardPage() {
             let token = session.user.accessToken;
             if (typeof token === "string") token = token.replace(/"/g, "");
 
-            const res = await axios.get("http://localhost:5000/api/trips/user/me", {
+            const res = await axios.get("process.env.NEXT_PUBLIC_BACKEND_URL/api/trips/user/me", {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setTrips(res.data);
@@ -64,7 +64,7 @@ export default function DashboardPage() {
             let token = session.user.accessToken;
             if (typeof token === "string") token = token.replace(/"/g, "");
 
-            await axios.patch(`http://localhost:5000/api/requests/${requestId}/${action}`, {}, {
+            await axios.patch(`process.env.NEXT_PUBLIC_BACKEND_URL/api/requests/${requestId}/${action}`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 

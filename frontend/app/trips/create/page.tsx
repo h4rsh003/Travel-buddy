@@ -39,7 +39,7 @@ export default function CreateTripPage() {
 
       // Send data to Backend
       await axios.post(
-        "http://localhost:5000/api/trips",
+        "process.env.NEXT_PUBLIC_BACKEND_URL/api/trips",
         {
           ...data,
           budget: Number(data.budget), // Ensure budget is a number
