@@ -1,5 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from "typeorm";
-
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from "typeorm";
+import { Trip } from "./Trip";
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
@@ -14,7 +14,6 @@ export class User {
   @Column({ nullable: true }) 
   password: string;
   
-  // 👇 NEW COLUMNS
   @Column({ nullable: true })
   bio: string;
 
@@ -29,4 +28,8 @@ export class User {
 
   @CreateDateColumn()
   created_at: Date;
+
+  // RELATIONSHIP: One User has Many Trips
+  @OneToMany(() => Trip, (trip) => trip.user)
+  trips: Trip[];
 }
