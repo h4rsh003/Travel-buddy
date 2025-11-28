@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn, OneToMany } from "typeorm";
 import { User } from "./User";
+import { JoinRequest } from "./JoinRequest";
 
 @Entity()
 export class Trip {
@@ -31,4 +32,7 @@ export class Trip {
 
   @CreateDateColumn()
   created_at: Date;
+
+  @OneToMany(() => JoinRequest, (request) => request.trip)
+  joinRequests: JoinRequest[];
 }

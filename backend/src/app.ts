@@ -4,6 +4,7 @@ import { AppDataSource } from "./config/data-source";
 import authRoutes from "./routes/auth.routes";
 import userRoutes from "./routes/user.routes";
 import tripRoutes from "./routes/trip.routes";
+import requestRoutes from "./routes/request.routes";
 
 import cors from "cors";
 const app = express();
@@ -12,6 +13,7 @@ app.use(cors());
 
 app.use(express.json());
 
+app.use("/api/requests", requestRoutes);
 app.use("/api/trips", tripRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);

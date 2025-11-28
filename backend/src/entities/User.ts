@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from "typeorm";
 import { Trip } from "./Trip";
+import { JoinRequest } from "./JoinRequest";
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
@@ -32,4 +33,7 @@ export class User {
   // RELATIONSHIP: One User has Many Trips
   @OneToMany(() => Trip, (trip) => trip.user)
   trips: Trip[];
+
+  @OneToMany(() => JoinRequest, (request) => request.user)
+  joinRequests: JoinRequest[];
 }
