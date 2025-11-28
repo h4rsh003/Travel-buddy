@@ -4,11 +4,10 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { FcGoogle } from "react-icons/fc";
-import { signIn } from "next-auth/react"; 
+import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
-// 1. Define Validation Schema (Matches Backend!)
+// 1. Define Validation Schema
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(1, "Password is required"),
@@ -17,8 +16,8 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
-    const router = useRouter();
-  // 2. Setup Form Hook
+  const router = useRouter();
+  
   const {
     register,
     handleSubmit,
@@ -27,11 +26,11 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
-  // 3. Handle Form Submission
-const onSubmit = async (data: LoginFormValues) => {
+  // 2. Handle Form Submission
+  const onSubmit = async (data: LoginFormValues) => {
     try {
       const result = await signIn("credentials", {
-        redirect: false, // Don't redirect automatically, we handle it
+        redirect: false,
         email: data.email,
         password: data.password,
       });
@@ -39,7 +38,7 @@ const onSubmit = async (data: LoginFormValues) => {
       if (result?.error) {
         alert("Login Failed! Check email or password.");
       } else {
-        alert("Login Successful! 🚀");
+        // alert("Login Successful! 🚀");
         router.push("/"); // Redirect to Home Page
       }
     } catch (error) {
@@ -103,30 +102,12 @@ const onSubmit = async (data: LoginFormValues) => {
           </button>
         </form>
 
-        {/* Divider */}
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300" />
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="bg-white px-2 text-gray-500">Or continue with</span>
-          </div>
-        </div>
-
-        {/* Google Button */}
-        <button
-          type="button"
-          onClick={() => console.log("Google Login Clicked")}
-          className="flex w-full items-center justify-center gap-3 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-        >
-          <FcGoogle className="h-5 w-5" />
-          Sign in with Google
-        </button>
+        {/* Removed Divider and Google Button here */}
 
         {/* Footer Link */}
         <p className="text-center text-sm text-gray-600">
-          Do not have an account?{" "}
-          <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500">
+          Don't have an account?{" "}
+          <Link href="/auth/register" className="font-medium text-blue-600 hover:text-blue-500">
             Sign up
           </Link>
         </p>
