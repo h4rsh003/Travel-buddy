@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-// 👇 Import looks like this (Next.js alias "@" points to root)
-import { Providers } from "@/components/Providers"; 
+import { Providers } from "@/components/Providers";
+import Navbar from "@/components/Navbar"; // 👈 Import Navbar
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Travel Buddy 2.0",
+  title: "Travel Buddy",
   description: "Find your perfect travel partner",
 };
 
@@ -20,6 +20,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <Providers>
+            <Navbar /> {/* 👈 Add Navbar Here */}
             {children}
         </Providers>
       </body>

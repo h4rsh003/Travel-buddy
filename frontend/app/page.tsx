@@ -1,11 +1,9 @@
 "use client";
 
-import { useSession, signOut } from "next-auth/react";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import Link from "next/link";
 
-// Define TypeScript Type for a Trip
 type Trip = {
   id: number;
   destination: string;
@@ -20,7 +18,6 @@ type Trip = {
 };
 
 export default function Home() {
-  const { data: session } = useSession();
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -41,51 +38,23 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gray-50">
-
-      {/* 🟢 HERO SECTION (Welcome + Actions) */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-blue-600">Travel Buddy 2.0 ✈️</h1>
-            <p className="text-gray-500 mt-1">Find your perfect travel partner.</p>
-          </div>
-
-          {session ? (
-            <div className="flex gap-4 items-center">
-              <span className="hidden md:block font-medium text-gray-700">
-                Hi, {session.user?.name}
-              </span>
-              <Link href="/trips/create" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">
-                + Post Trip
-              </Link>
-              <Link href="/profile" className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
-                Profile
-              </Link>
-              <button onClick={() => signOut()} className="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100">
-                Logout
-              </button>
-            </div>
-          ) : (
-            <div className="flex gap-3">
-              <Link href="/auth/login" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">
-                Login
-              </Link>
-              <Link href="/auth/register" className="px-4 py-2 bg-white border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 font-medium">
-                Sign Up
-              </Link>
-            </div>
-          )}
-        </div>
-      </div>
-
+      
       {/* 🟢 FEED SECTION */}
       <div className="max-w-7xl mx-auto px-4 py-10 sm:px-6 lg:px-8">
-        <h2 className="text-xl font-bold text-gray-800 mb-6">Latest Trips 🌍</h2>
+        
+        {/* Simple Banner */}
+        <div className="mb-8 text-center md:text-left">
+           <h1 className="text-3xl font-bold text-gray-900">Explore Trips 🌍</h1>
+           <p className="text-gray-500 mt-2">Find companions for your next adventure.</p>
+        </div>
 
         {loading ? (
-          <p>Loading trips...</p>
+          <p className="text-center text-gray-500">Loading trips...</p>
         ) : trips.length === 0 ? (
-          <p className="text-gray-500">No trips posted yet. Be the first!</p>
+          <div className="text-center py-20">
+             <p className="text-xl text-gray-500">No trips posted yet.</p>
+             <p className="text-blue-500">Be the first to post!</p>
+          </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {trips.map((trip) => (
@@ -99,7 +68,7 @@ export default function Home() {
                       </p>
                     </div>
                   </div>
-
+                  
                   <p className="mt-4 text-gray-600 text-sm line-clamp-3">
                     {trip.description}
                   </p>
@@ -113,9 +82,9 @@ export default function Home() {
                         {trip.user.name}
                       </span>
                     </div>
-
-                    <Link
-                      href={`/trips/${trip.id}`}
+                    
+                    <Link 
+                      href={`/trips/${trip.id}`} 
                       className="text-sm font-medium text-blue-600 hover:text-blue-700"
                     >
                       View Details →
