@@ -7,10 +7,19 @@ dotenv.config();
 export const AppDataSource = new DataSource({
   type: "postgres",
   url: process.env.DATABASE_URL,
-  synchronize: true, // ⚠️ Auto-creates tables (only for development!)
+  synchronize: true, 
   logging: false,
-  entities: ["src/entities/**/*.ts"], 
-  migrations: ["src/migrations/**/*.ts"],
-  subscribers: ["src/subscribers/**/*.ts"],
-  ssl: true, // ⚠️ Mandatory for Neon.tech
+  // 👇 FIX: Dynamically select .ts (dev) or .js (prod)
+  entities: [
+    process.env.NODE_ENV === "production" 
+      ? "dist/entities/**/*.js" 
+      : "src/entities/**/*.ts"
+  ],
+  migrations: [
+    process.env.NODE_ENV === "production"
+      ? "dist/migrations/**/*.js"
+      : "src/migrations/**/*.ts"
+  ],
+  subscribers: [],
+  ssl: true, // Keep this for Neon.tech
 });
