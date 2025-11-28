@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import axios from "axios";// 👈 We use this to call backend
-import { useRouter } from "next/navigation"; // To redirect after success
+import axios from "axios";
+import { useRouter } from "next/navigation"; 
 
 // 1. Validation Schema (Name + Email + Password)
 const registerSchema = z.object({
@@ -29,9 +29,11 @@ export default function RegisterPage() {
   });
 
   // 2. Handle Registration
-const onSubmit = async (data: RegisterFormValues) => {
+  const onSubmit = async (data: RegisterFormValues) => {
     try {
-      await axios.post("process.env.NEXT_PUBLIC_BACKEND_URL/api/auth/register", data);
+      // ✅ FIXED: Use backticks ` ` and ${} to read the variable
+      await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/register`, data);
+      
       alert("Registration Successful! Please login.");
       router.push("/auth/login");
     } catch (error) {

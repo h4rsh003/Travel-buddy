@@ -39,10 +39,10 @@ export default function CreateTripPage() {
 
       // Send data to Backend
       await axios.post(
-        "process.env.NEXT_PUBLIC_BACKEND_URL/api/trips",
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/trips`, // ✅ CORRECT: Using variable
         {
           ...data,
-          budget: Number(data.budget), // Ensure budget is a number
+          budget: Number(data.budget), 
         },
         {
           headers: { Authorization: `Bearer ${token}` },

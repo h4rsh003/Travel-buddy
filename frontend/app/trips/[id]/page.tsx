@@ -41,7 +41,8 @@ export default function TripDetailsPage() {
   useEffect(() => {
     const fetchTrip = async () => {
       try {
-        const res = await axios.get(`process.env.NEXT_PUBLIC_BACKEND_URL/api/trips/${id}`);
+        // ✅ FIXED: Use Environment Variable
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/trips/${id}`);
         setTrip(res.data);
       } catch (error) {
         console.error("Error fetching trip:", error);
@@ -66,7 +67,7 @@ export default function TripDetailsPage() {
                 setIsAccepted(true);
             }
         } else {
-            setHasRequested(false); // Reset if no request found
+            setHasRequested(false); 
         }
     }
   }, [trip, session]);
@@ -85,7 +86,8 @@ export default function TripDetailsPage() {
       let token = session.user.accessToken;
       if (typeof token === "string") token = token.replace(/"/g, "");
 
-      await axios.post("process.env.NEXT_PUBLIC_BACKEND_URL/api/requests/send", 
+      // ✅ FIXED: Use Environment Variable
+      await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/requests/send`, 
         { tripId: Number(id) },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -118,12 +120,12 @@ export default function TripDetailsPage() {
       let token = session.user.accessToken;
       if (typeof token === "string") token = token.replace(/"/g, "");
 
-      // Call DELETE API
-      await axios.delete(`process.env.NEXT_PUBLIC_BACKEND_URL/api/requests/${id}`, {
+      // ✅ FIXED: Use Environment Variable
+      await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/requests/${id}`, {
          headers: { Authorization: `Bearer ${token}` } 
       });
 
-      setHasRequested(false); // Reset UI
+      setHasRequested(false); 
       setIsAccepted(false);
       alert("Request Cancelled.");
     } catch (error) {
@@ -143,12 +145,13 @@ export default function TripDetailsPage() {
       let token = session.user.accessToken;
       if (typeof token === "string") token = token.replace(/"/g, "");
 
-      await axios.delete(`process.env.NEXT_PUBLIC_BACKEND_URL/api/trips/${id}`, {
+      // ✅ FIXED: Use Environment Variable
+      await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/trips/${id}`, {
          headers: { Authorization: `Bearer ${token}` }
       });
 
       alert("Trip Deleted Successfully.");
-      router.push("/"); // Redirect to Home
+      router.push("/"); 
     } catch (error) {
       console.error(error);
       alert("Failed to delete trip.");
@@ -168,7 +171,6 @@ export default function TripDetailsPage() {
     </div>
   );
 
-  // 🛠️ FIXED: Added description to @ts-expect-error to satisfy ESLint
   // @ts-expect-error -- session user id typing mismatch with backend response
   const isOwner = session?.user?.id === trip.user.id;
 
@@ -231,48 +233,26 @@ export default function TripDetailsPage() {
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-gray-100">
              {isOwner ? (
-                // 🔴 OWNER VIEW: Show Delete Button
                 <>
-                    <button 
-                        disabled 
-                        className="flex-1 bg-gray-100 text-gray-500 py-3 rounded-lg font-bold cursor-not-allowed border border-gray-200"
-                    >
+                    <button disabled className="flex-1 bg-gray-100 text-gray-500 py-3 rounded-lg font-bold cursor-not-allowed border border-gray-200">
                         You Own This Trip
                     </button>
-                    
-                    <button 
-                        onClick={handleDeleteTrip}
-                        className="px-6 py-3 bg-red-50 text-red-600 border border-red-200 rounded-lg font-bold hover:bg-red-100 transition"
-                    >
+                    <button onClick={handleDeleteTrip} className="px-6 py-3 bg-red-50 text-red-600 border border-red-200 rounded-lg font-bold hover:bg-red-100 transition">
                         Delete Trip 🗑️
                     </button>
                 </>
              ) : hasRequested ? (
-                // 🟢 JOINER VIEW: Already Requested
-                <button 
-                    onClick={handleCancelRequest}
-                    disabled={requesting}
-                    className="flex-1 bg-red-50 text-red-600 border border-red-200 py-3 rounded-lg font-bold hover:bg-red-100 transition"
-                >
+                <button onClick={handleCancelRequest} disabled={requesting} className="flex-1 bg-red-50 text-red-600 border border-red-200 py-3 rounded-lg font-bold hover:bg-red-100 transition">
                     {requesting ? "Cancelling..." : "Cancel Request ❌"}
                 </button>
              ) : (
-                // 🔵 JOINER VIEW: Can Request
-                <button 
-                    onClick={handleJoinRequest}
-                    disabled={requesting}
-                    className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition disabled:bg-blue-300 shadow-md hover:shadow-lg transform active:scale-95 duration-200"
-                >
+                <button onClick={handleJoinRequest} disabled={requesting} className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition disabled:bg-blue-300 shadow-md hover:shadow-lg transform active:scale-95 duration-200">
                     {requesting ? "Sending..." : "Request to Join 🚀"}
                 </button>
              )}
              
-             {/* Only show Back button if NOT owner (since owner has delete button taking space) */}
              {!isOwner && (
-                 <Link 
-                    href="/" 
-                    className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 text-center transition"
-                 >
+                 <Link href="/" className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 text-center transition">
                     Back to Feed
                  </Link>
              )}

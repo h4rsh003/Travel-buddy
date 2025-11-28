@@ -14,7 +14,8 @@ const handler = NextAuth({
       async authorize(credentials) {
         try {
           // Call your Backend API
-          const res = await axios.post("process.env.NEXT_PUBLIC_BACKEND_URL/api/auth/login", {
+          // ✅ FIXED: Use backticks ` ` and ${} to read the variable
+          const res = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/login`, {
             email: credentials?.email,
             password: credentials?.password,
           });
@@ -55,7 +56,7 @@ const handler = NextAuth({
     },
   },
   pages: {
-    signIn: "/login", // Redirect here if auth fails
+    signIn: "/auth/login", // Redirect here if auth fails (Updated to match your folder structure)
   },
   secret: process.env.NEXTAUTH_SECRET, // Mandatory for security
 });
