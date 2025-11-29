@@ -25,7 +25,6 @@ export default function Home() {
   useEffect(() => {
     const fetchTrips = async () => {
       try {
-        // ✅ FIXED: Use backticks ` ` and ${}
         const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/trips`);
         setTrips(res.data);
       } catch (error) {
@@ -40,7 +39,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gray-50">
       
-      {/* 🟢 FEED SECTION */}
+      {/*  FEED SECTION */}
       <div className="max-w-7xl mx-auto px-4 py-10 sm:px-6 lg:px-8">
         
         {/* Simple Banner */}

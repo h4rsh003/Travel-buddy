@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
@@ -39,7 +39,7 @@ export default function ProfilePage() {
       if (typeof token === "string") token = token.replace(/"/g, "");
 
       const apiUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/profile`;
-      console.log("🔍 Fetching Profile from:", apiUrl); // 👈 Check Console for this!
+      console.log("🔍 Fetching Profile from:", apiUrl); 
 
       const res = await axios.get(apiUrl, {
          headers: { Authorization: `Bearer ${token}` }
@@ -55,7 +55,7 @@ export default function ProfilePage() {
         interests: res.data.interests ? res.data.interests.join(", ") : "",
       });
     } catch (error) {
-      console.error("❌ Error fetching profile:", error);
+      console.error(" Error fetching profile:", error);
     } finally {
       setLoading(false);
     }
@@ -92,7 +92,7 @@ export default function ProfilePage() {
             { headers: { Authorization: `Bearer ${token}` } }
         );
         
-        alert("Profile Updated Successfully! 🌟");
+        alert("Profile Updated Successfully!");
         setIsEditing(false); 
         fetchProfile(); 
     } catch (e) { 
@@ -124,22 +124,34 @@ export default function ProfilePage() {
                         <h1 className="text-2xl font-bold text-gray-900">{userData?.name}</h1>
                         <p className="text-gray-500 text-sm">{userData?.email}</p>
                     </div>
-                    <button 
-                        onClick={() => setIsEditing(!isEditing)}
-                        className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
-                            isEditing 
-                            ? "bg-gray-100 text-gray-700 hover:bg-gray-200" 
-                            : "bg-blue-600 text-white hover:bg-blue-700"
-                        }`}
-                    >
-                        {isEditing ? "Cancel" : "Edit Profile"}
-                    </button>
+                    
+                    {/* Buttons Container */}
+                    <div className="flex gap-3">
+                        <button 
+                            onClick={() => setIsEditing(!isEditing)}
+                            className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
+                                isEditing 
+                                ? "bg-gray-100 text-gray-700 hover:bg-gray-200" 
+                                : "bg-blue-600 text-white hover:bg-blue-700"
+                            }`}
+                        >
+                            {isEditing ? "Cancel" : "Edit Profile"}
+                        </button>
+
+                        {/* 🔴 Logout Button */}
+                        <button 
+                            onClick={() => signOut({ callbackUrl: "/" })}
+                            className="px-4 py-2 bg-red-50 text-red-600 rounded-lg font-medium text-sm hover:bg-red-100 transition border border-red-100"
+                        >
+                            Logout
+                        </button>
+                    </div>
                 </div>
 
                 <hr className="my-6 border-gray-100"/>
 
                 {isEditing ? (
-                    // 🟢 EDIT MODE
+                    //  EDIT MODE
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 animate-fade-in">
                          <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
@@ -165,7 +177,7 @@ export default function ProfilePage() {
                          </div>
                     </form>
                 ) : (
-                    // 🔵 VIEW MODE
+                    // VIEW MODE
                     <div className="space-y-6">
                         <div>
                             <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">About</h3>
