@@ -39,7 +39,7 @@ export default function CreateTripPage() {
 
       // Send data to Backend
       await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/trips`, // ✅ CORRECT: Using variable
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/trips`, 
         {
           ...data,
           budget: Number(data.budget),
@@ -49,7 +49,7 @@ export default function CreateTripPage() {
         }
       );
 
-      alert("Trip Created Successfully! ✈️");
+      alert("Trip Created Successfully!");
       router.push("/"); // Redirect to Home (Feed)
     } catch (error) {
       console.error(error);

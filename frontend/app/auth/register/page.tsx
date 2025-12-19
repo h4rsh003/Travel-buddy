@@ -9,11 +9,16 @@ import { useRouter } from "next/navigation";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { useState } from "react";
 
-// 1. Validation Schema (Name + Email + Password)
+// 1. Updated Validation Schema with Strict Password Rules
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 chars"),
   email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 chars"),
+  password: z
+    .string()
+    .min(6, "Password must be at least 6 chars")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number")
+    .regex(/[^a-zA-Z0-9]/, "Password must contain at least one special char (!@#$%)"),
 });
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
@@ -29,6 +34,7 @@ export default function RegisterPage() {
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
+    mode: "onChange", // 👈 Enables real-time validation as you type
   });
 
   // 2. Handle Registration
@@ -39,7 +45,6 @@ export default function RegisterPage() {
       alert("Registration Successful! Please login.");
       router.push("/auth/login");
     } catch (error) {
-      // Check if the error is actually from Axios
       if (axios.isAxiosError(error) && error.response) {
          setError("root", { message: error.response.data.message });
       } else {
@@ -53,7 +58,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-md space-y-8 rounded-lg bg-white p-8 shadow-lg">
         <div className="text-center">
           <h2 className="text-3xl font-bold tracking-tight text-gray-900">
-            Create an Account 🚀
+            Create an Account
           </h2>
           <p className="mt-2 text-sm text-gray-600">
             Join Travel Buddy today
@@ -99,7 +104,6 @@ export default function RegisterPage() {
               <div className="relative mt-1">
                 <input
                   {...register("password")}
-                  // Toggle between text and password
                   type={showPassword ? "text" : "password"}
                   className="block w-full rounded-md border border-gray-300 px-3 py-2 pr-10 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
                   placeholder="Enter your password"
@@ -116,6 +120,7 @@ export default function RegisterPage() {
                   )}
                 </button>
               </div>
+              {/* Validation Message appears here immediately */}
               {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>}
             </div>
           </div>
