@@ -34,7 +34,7 @@ export default function RegisterPage() {
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
-    mode: "onChange", // 👈 Enables real-time validation as you type
+    mode: "onChange", 
   });
 
   // 2. Handle Registration
