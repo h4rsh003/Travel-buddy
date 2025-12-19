@@ -6,6 +6,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import axios from "axios";
 import { useRouter } from "next/navigation"; 
+import { FiEye, FiEyeOff } from "react-icons/fi";
+import { useState } from "react";
 
 // 1. Validation Schema (Name + Email + Password)
 const registerSchema = z.object({
@@ -18,6 +20,7 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
   const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
   
   const {
     register,
@@ -31,7 +34,6 @@ export default function RegisterPage() {
   // 2. Handle Registration
   const onSubmit = async (data: RegisterFormValues) => {
     try {
-      // ✅ FIXED: Use backticks ` ` and ${} to read the variable
       await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/register`, data);
       
       alert("Registration Successful! Please login.");
@@ -61,7 +63,7 @@ export default function RegisterPage() {
         <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-6">
           {/* Show Backend Error */}
           {errors.root && (
-            <div className="rounded-md bg-red-50 p-3 text-sm text-red-500">
+            <div className="rounded-md bg-red-50 p-3 text-sm text-red-500 text-center border border-red-200">
               {errors.root.message}
             </div>
           )}
@@ -91,15 +93,29 @@ export default function RegisterPage() {
               {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
             </div>
 
-            {/* Password Input */}
+            {/* Password Input with Eye Button */}
             <div>
               <label className="block text-sm font-medium text-gray-700">Password</label>
-              <input
-                {...register("password")}
-                type="password"
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
-                placeholder="••••••••"
-              />
+              <div className="relative mt-1">
+                <input
+                  {...register("password")}
+                  // Toggle between text and password
+                  type={showPassword ? "text" : "password"}
+                  className="block w-full rounded-md border border-gray-300 px-3 py-2 pr-10 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
+                  placeholder="Enter your password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 focus:outline-none"
+                >
+                  {showPassword ? (
+                    <FiEyeOff className="h-5 w-5" aria-hidden="true" />
+                  ) : (
+                    <FiEye className="h-5 w-5" aria-hidden="true" />
+                  )}
+                </button>
+              </div>
               {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>}
             </div>
           </div>

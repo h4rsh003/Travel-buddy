@@ -6,6 +6,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 
 // 1. Define Validation Schema
 const loginSchema = z.object({
@@ -17,10 +19,12 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
   
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -36,14 +40,14 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        alert("Login Failed! Check email or password.");
+        // Handle Login Failure: Set error below password field
+        setError("root", { message: "Invalid email or password" });
       } else {
-        // alert("Login Successful!");
         router.push("/"); // Redirect to Home Page
       }
     } catch (error) {
       console.log(error);
-      alert("Something went wrong");
+      setError("root", { message: "Something went wrong" });
     }
   };
 
@@ -53,7 +57,7 @@ export default function LoginPage() {
         {/* Header */}
         <div className="text-center">
           <h2 className="text-3xl font-bold tracking-tight text-gray-900">
-            Welcome Back!
+            Welcome Back! 👋
           </h2>
           <p className="mt-2 text-sm text-gray-600">
             Sign in to your Travel Buddy account
@@ -77,17 +81,38 @@ export default function LoginPage() {
               )}
             </div>
 
-            {/* Password Input */}
+            {/* Password Input with Eye Button */}
             <div>
               <label className="block text-sm font-medium text-gray-700">Password</label>
-              <input
-                {...register("password")}
-                type="password"
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
-                placeholder="••••••••"
-              />
+              <div className="relative mt-1">
+                <input
+                  {...register("password")}
+                  type={showPassword ? "text" : "password"}
+                  className="block w-full rounded-md border border-gray-300 px-3 py-2 pr-10 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
+                  placeholder="Enter your password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 focus:outline-none"
+                >
+                  {showPassword ? (
+                    <FiEyeOff className="h-5 w-5" aria-hidden="true" />
+                  ) : (
+                    <FiEye className="h-5 w-5" aria-hidden="true" />
+                  )}
+                </button>
+              </div>
+              {/* Validation Errors */}
               {errors.password && (
                 <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>
+              )}
+              
+              {/* Show Login Failed Error Here */}
+              {errors.root && (
+                <p className="mt-2 text-sm text-red-500 text-center bg-red-50 p-2 rounded border border-red-100">
+                  {errors.root.message}
+                </p>
               )}
             </div>
           </div>
@@ -101,8 +126,6 @@ export default function LoginPage() {
             {isSubmitting ? "Signing in..." : "Sign in"}
           </button>
         </form>
-
-        {/* Removed Divider and Google Button here */}
 
         {/* Footer Link */}
         <p className="text-center text-sm text-gray-600">
