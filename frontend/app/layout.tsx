@@ -4,6 +4,7 @@ import "./globals.css";
 import { Providers } from "@/components/Providers";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { Toaster } from "react-hot-toast"; // 👈 Import Toaster
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,22 +19,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    // 1. suppressHydrationWarning: Essential for next-themes to work without errors
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <Providers>
-          {/* 2. Flex Container: Ensures Footer always stays at the bottom */}
           <div className="flex flex-col min-h-screen">
             <Navbar />
             
-            {/* 3. Main Content: Grows to fill available space */}
-            {/* Updated 'flex-grow' to 'grow' based on Tailwind recommendation */}
             <main className="grow">
               {children}
             </main>
             
             <Footer />
           </div>
+          {/* Global Toaster Configuration */}
+          <Toaster 
+            position="bottom-right" 
+            toastOptions={{
+              style: {
+                background: '#333',
+                color: '#fff',
+              },
+            }}
+          />
         </Providers>
       </body>
     </html>

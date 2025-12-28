@@ -16,11 +16,10 @@ export default function Navbar() {
     <nav className="sticky top-0 z-50 w-full bg-travel-bg/80 backdrop-blur-md border-b border-travel-border transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
-          
-          {/* ✨ CATCHY LOGO: Gradient Text */}
+          {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
             <span className="text-2xl group-hover:scale-110 transition-transform duration-300">✈️</span>
-            <span className="font-bold text-xl tracking-tight hidden sm:block bg-gradient-to-r from-travel-accent to-orange-500 bg-clip-text text-transparent">
+            <span className="font-bold text-xl tracking-tight hidden sm:block bg-linear-to-r from-travel-accent to-orange-500 bg-clip-text text-transparent">
               Travel Buddy
             </span>
             <span className="font-bold text-xl text-travel-accent tracking-tight sm:hidden">
@@ -36,7 +35,7 @@ export default function Navbar() {
               href="/" 
               className={`hidden md:block px-3 py-2 rounded-full text-sm transition-all duration-200 ${
                 isActive("/") 
-                  ? "bg-travel-accent/10 text-travel-accent font-bold"   // ✨ Active Pill Style
+                  ? "bg-travel-accent/10 text-travel-accent font-bold"
                   : "text-travel-text-muted font-medium hover:text-travel-text hover:bg-gray-100/50 dark:hover:bg-white/5"
               }`}
             >
@@ -68,13 +67,13 @@ export default function Navbar() {
                   Profile
                 </Link>
 
-                {/* ✨ CATCHY BUTTON: Gradient Background */}
+                {/* CATCHY BUTTON: Gradient Background */}
                 <Link 
                   href="/trips/create" 
                   className={`px-4 py-2 rounded-full text-xs md:text-sm font-bold text-white transition-all hover:scale-105 shadow-md hover:shadow-lg ${
                     isActive("/trips/create")
-                        ? "bg-gradient-to-r from-travel-accent-hover to-orange-600 ring-2 ring-offset-2 ring-travel-accent"
-                        : "bg-gradient-to-r from-travel-accent to-orange-500"
+                        ? "bg-linear-to-r from-travel-accent-hover to-orange-600 ring-2 ring-offset-2 ring-travel-accent"
+                        : "bg-linear-to-r from-travel-accent to-orange-500"
                   }`}
                 >
                   + Create <span className="hidden md:inline">Trip</span>
@@ -95,14 +94,14 @@ export default function Navbar() {
                 </Link>
                 <Link 
                   href="/auth/register" 
-                  className="px-4 py-2 rounded-full text-xs md:text-sm font-bold text-white bg-gradient-to-r from-travel-accent to-orange-500 hover:from-travel-accent-hover hover:to-orange-600 transition-all hover:scale-105 shadow-md"
+                  className="px-4 py-2 rounded-full text-xs md:text-sm font-bold text-white bg-linear-to-r from-travel-accent to-orange-500 hover:from-travel-accent-hover hover:to-orange-600 transition-all hover:scale-105 shadow-md"
                 >
                   Sign Up
                 </Link>
               </>
             )}
 
-            {/* 🌗 Global Theme Toggle (Always visible) */}
+            {/* Global Theme Toggle (Always visible) */}
             <div className="pl-2 border-l border-travel-border ml-1">
                 <ThemeToggle />
             </div>

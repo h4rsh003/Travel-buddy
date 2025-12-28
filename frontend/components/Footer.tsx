@@ -1,3 +1,5 @@
+"use client";
+
 export default function Footer() {
   return (
     <footer className="bg-travel-card border-t border-travel-border mt-auto">
@@ -11,8 +13,21 @@ export default function Footer() {
             </p>
           </div>
           <div className="flex gap-4">
-            <a href="#" className="text-travel-text-muted hover:text-travel-accent transition-colors text-sm">Github</a>
-            <a href="#" className="text-travel-text-muted hover:text-travel-accent transition-colors text-sm">Twitter</a>
+            {/* Replaced GitHub with Email */}
+            <a 
+              href="mailto:harshshrivastava003@gmail.com" 
+              className="text-travel-text-muted hover:text-travel-accent transition-colors text-sm"
+            >
+              Email
+            </a>
+            <a 
+              href="https://www.linkedin.com/in/harsh-shrivastava003" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-travel-text-muted hover:text-travel-accent transition-colors text-sm"
+            >
+              LinkedIn
+            </a>
           </div>
         </div>
       </div>

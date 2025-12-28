@@ -7,9 +7,10 @@ import * as z from "zod";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { FiEye, FiEyeOff } from "react-icons/fi";
+import { FiEye, FiEyeOff, FiMail, FiLock, FiArrowLeft } from "react-icons/fi";
+import { toast } from "react-hot-toast";
 
-// 1. Define Validation Schema
+// Define Validation Schema
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(1, "Password is required"),
@@ -30,8 +31,10 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
-  // 2. Handle Form Submission
+  // Handle Form Submission
   const onSubmit = async (data: LoginFormValues) => {
+    const loadingToast = toast.loading("Signing in...");
+
     try {
       const result = await signIn("credentials", {
         redirect: false,
@@ -39,57 +42,80 @@ export default function LoginPage() {
         password: data.password,
       });
 
+      toast.dismiss(loadingToast);
+
       if (result?.error) {
-        // Handle Login Failure: Set error below password field
+        toast.error("Invalid email or password");
         setError("root", { message: "Invalid email or password" });
       } else {
-        router.push("/"); // Redirect to Home Page
+        toast.success("Welcome back!");
+        router.push("/"); 
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
+      toast.dismiss(loadingToast);
+      toast.error("Something went wrong");
       setError("root", { message: "Something went wrong" });
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-travel-bg px-4">
-      {/* 🎨 Updated: Uses travel-card with padding and border */}
-      <div className="w-full max-w-md space-y-8 rounded-lg bg-travel-card p-8 shadow-lg border border-travel-border">
+    <div className="flex min-h-screen items-center justify-center bg-travel-bg px-4 relative">
+      
+      {/* Back to Home Link */}
+      <div className="absolute top-8 left-8">
+        <Link href="/" className="flex items-center gap-2 text-travel-text-muted hover:text-travel-accent transition-colors text-sm font-medium">
+            <FiArrowLeft /> Back to Home
+        </Link>
+      </div>
+
+      <div className="w-full max-w-md space-y-8 rounded-2xl bg-travel-card p-10 shadow-xl border border-travel-border transform transition-all">
         {/* Header */}
         <div className="text-center">
           <h2 className="text-3xl font-bold tracking-tight text-travel-text">
             Welcome Back!
           </h2>
           <p className="mt-2 text-sm text-travel-text-muted">
-            Sign in to your Travel Buddy account
+            Sign in to start your next adventure
           </p>
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-6">
-          <div className="space-y-4 rounded-md shadow-sm">
+          <div className="space-y-5">
+            
             {/* Email Input */}
             <div>
-              <label className="block text-sm font-medium text-travel-text">Email</label>
-              <input
-                {...register("email")}
-                type="email"
-                className="mt-1 block w-full rounded-md border border-travel-border px-3 py-2 text-travel-text placeholder-travel-text-muted focus:border-travel-accent focus:outline-none focus:ring-1 focus:ring-travel-accent sm:text-sm bg-white"
-                placeholder="you@example.com"
-              />
+              <label className="block text-sm font-medium text-travel-text mb-1">Email</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FiMail className="h-5 w-5 text-travel-text-muted" />
+                </div>
+                {/* 🛠️ FIX: Changed bg-white to bg-travel-bg */}
+                <input
+                  {...register("email")}
+                  type="email"
+                  className="block w-full pl-10 rounded-lg border border-travel-border px-3 py-3 text-travel-text placeholder-travel-text-muted focus:border-travel-accent focus:outline-none focus:ring-1 focus:ring-travel-accent sm:text-sm bg-travel-bg transition-all"
+                  placeholder="you@example.com"
+                />
+              </div>
               {errors.email && (
-                <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>
+                <p className="mt-1 text-xs text-red-500 font-medium">{errors.email.message}</p>
               )}
             </div>
 
-            {/* Password Input with Eye Button */}
+            {/* Password Input */}
             <div>
-              <label className="block text-sm font-medium text-travel-text">Password</label>
-              <div className="relative mt-1">
+              <label className="block text-sm font-medium text-travel-text mb-1">Password</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FiLock className="h-5 w-5 text-travel-text-muted" />
+                </div>
+                {/* 🛠️ FIX: Changed bg-white to bg-travel-bg */}
                 <input
                   {...register("password")}
                   type={showPassword ? "text" : "password"}
-                  className="block w-full rounded-md border border-travel-border px-3 py-2 pr-10 text-travel-text placeholder-travel-text-muted focus:border-travel-accent focus:outline-none focus:ring-1 focus:ring-travel-accent sm:text-sm bg-white"
+                  className="block w-full pl-10 pr-10 rounded-lg border border-travel-border px-3 py-3 text-travel-text placeholder-travel-text-muted focus:border-travel-accent focus:outline-none focus:ring-1 focus:ring-travel-accent sm:text-sm bg-travel-bg transition-all"
                   placeholder="Enter your password"
                 />
                 <button
@@ -98,22 +124,22 @@ export default function LoginPage() {
                   className="absolute inset-y-0 right-0 flex items-center pr-3 text-travel-text-muted hover:text-travel-text focus:outline-none"
                 >
                   {showPassword ? (
-                    <FiEyeOff className="h-5 w-5" aria-hidden="true" />
+                    <FiEyeOff className="h-5 w-5" />
                   ) : (
-                    <FiEye className="h-5 w-5" aria-hidden="true" />
+                    <FiEye className="h-5 w-5" />
                   )}
                 </button>
               </div>
-              {/* Validation Errors */}
+              
               {errors.password && (
-                <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>
+                <p className="mt-1 text-xs text-red-500 font-medium">{errors.password.message}</p>
               )}
               
-              {/* Show Login Failed Error Here */}
+              {/* Login Failed Error */}
               {errors.root && (
-                <p className="mt-2 text-sm text-red-500 text-center bg-red-50 p-2 rounded border border-red-100">
+                <div className="mt-3 p-3 rounded-lg bg-red-50 border border-red-100 text-red-600 text-sm text-center font-medium animate-pulse">
                   {errors.root.message}
-                </p>
+                </div>
               )}
             </div>
           </div>
@@ -122,16 +148,21 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="group relative flex w-full justify-center rounded-md border border-transparent bg-travel-accent px-4 py-2 text-sm font-medium text-white hover:bg-travel-accent-hover focus:outline-none focus:ring-2 focus:ring-travel-accent focus:ring-offset-2 disabled:bg-travel-border disabled:cursor-not-allowed transition-colors"
+            className="group relative flex w-full justify-center rounded-lg border border-transparent bg-travel-accent px-4 py-3 text-sm font-bold text-white shadow-md hover:bg-travel-accent-hover hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-travel-accent focus:ring-offset-2 disabled:bg-travel-border disabled:cursor-not-allowed transition-all transform active:scale-95"
           >
-            {isSubmitting ? "Signing in..." : "Sign in"}
+            {isSubmitting ? (
+                <span className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    Signing in...
+                </span>
+            ) : "Sign in"}
           </button>
         </form>
 
         {/* Footer Link */}
         <p className="text-center text-sm text-travel-text-muted">
-          Don't have an account?{" "}
-          <Link href="/auth/register" className="font-medium text-travel-accent hover:text-travel-accent-hover transition-colors">
+          Do not have an account?{" "}
+          <Link href="/auth/register" className="font-bold text-travel-accent hover:text-travel-accent-hover hover:underline transition-all">
             Sign up
           </Link>
         </p>
