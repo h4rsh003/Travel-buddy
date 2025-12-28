@@ -41,7 +41,6 @@ export default function TripDetailsPage() {
   useEffect(() => {
     const fetchTrip = async () => {
       try {
-        // ✅ FIXED: Use Environment Variable
         const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/trips/${id}`);
         setTrip(res.data);
       } catch (error) {
@@ -86,7 +85,6 @@ export default function TripDetailsPage() {
       let token = session.user.accessToken;
       if (typeof token === "string") token = token.replace(/"/g, "");
 
-      // ✅ FIXED: Use Environment Variable
       await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/requests/send`, 
         { tripId: Number(id) },
         { headers: { Authorization: `Bearer ${token}` } }
@@ -120,7 +118,6 @@ export default function TripDetailsPage() {
       let token = session.user.accessToken;
       if (typeof token === "string") token = token.replace(/"/g, "");
 
-      // ✅ FIXED: Use Environment Variable
       await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/requests/${id}`, {
          headers: { Authorization: `Bearer ${token}` } 
       });
@@ -145,7 +142,6 @@ export default function TripDetailsPage() {
       let token = session.user.accessToken;
       if (typeof token === "string") token = token.replace(/"/g, "");
 
-      // ✅ FIXED: Use Environment Variable
       await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/trips/${id}`, {
          headers: { Authorization: `Bearer ${token}` }
       });
@@ -159,15 +155,15 @@ export default function TripDetailsPage() {
   };
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500 text-lg animate-pulse">Loading Trip Details...</p>
+    <div className="min-h-screen flex items-center justify-center bg-travel-bg">
+        <p className="text-travel-text-muted text-lg animate-pulse">Loading Trip Details...</p>
     </div>
   );
 
   if (!trip) return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+    <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-travel-bg">
         <p className="text-red-500 text-xl font-bold">Trip not found!</p>
-        <Link href="/" className="text-blue-600 hover:underline">Go Back Home</Link>
+        <Link href="/" className="text-travel-accent hover:underline">Go Back Home</Link>
     </div>
   );
 
@@ -175,11 +171,11 @@ export default function TripDetailsPage() {
   const isOwner = session?.user?.id === trip.user.id;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+    <div className="min-h-screen bg-travel-bg py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-3xl mx-auto bg-travel-card rounded-xl shadow-lg overflow-hidden border border-travel-border">
         
-        {/* Header Image */}
-        <div className="h-56 bg-linear-to-r from-blue-600 to-indigo-600 flex items-center justify-center">
+        {/* Header Image - Uses travel-accent gradient */}
+        <div className="h-56 bg-linear-to-r from-travel-accent to-travel-accent-hover flex items-center justify-center">
             <h1 className="text-4xl md:text-5xl font-bold text-white tracking-wide shadow-sm">
                 {trip.destination}
             </h1>
@@ -188,55 +184,56 @@ export default function TripDetailsPage() {
         <div className="p-8">
           {/* Creator Info */}
           <div className="flex items-center gap-4 mb-8">
-            <div className="h-14 w-14 rounded-full bg-gray-100 border-2 border-white shadow-sm flex items-center justify-center text-xl font-bold text-gray-600">
+            <div className="h-14 w-14 rounded-full bg-travel-bg border-2 border-travel-card shadow-sm flex items-center justify-center text-xl font-bold text-travel-text">
                 {trip.user.name.charAt(0)}
             </div>
             <div>
-                <p className="text-gray-900 font-bold text-lg">{trip.user.name}</p>
+                <p className="text-travel-text font-bold text-lg">{trip.user.name}</p>
                 {isAccepted ? (
                     <div className="mt-1">
                         <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded">ACCEPTED ✅</span>
-                        <p className="text-blue-600 font-medium text-sm mt-1">
+                        <p className="text-travel-accent font-medium text-sm mt-1">
                             📧 {trip.user.email}
                         </p>
                     </div>
                 ) : (
-                    <p className="text-gray-500 text-sm">Trip Organizer</p>
+                    <p className="text-travel-text-muted text-sm">Trip Organizer</p>
                 )}
             </div>
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-8 border-y border-gray-100 py-6 bg-gray-50/50 rounded-lg px-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-8 border-y border-travel-border py-6 bg-travel-bg/50 rounded-lg px-4">
             <div>
-                <p className="text-gray-400 text-xs uppercase font-bold tracking-wider">Budget</p>
+                <p className="text-travel-text-muted text-xs uppercase font-bold tracking-wider">Budget</p>
                 <p className="text-2xl font-bold text-green-600">₹{trip.budget.toLocaleString()}</p>
             </div>
             <div>
-                <p className="text-gray-400 text-xs uppercase font-bold tracking-wider">Start Date</p>
-                <p className="text-lg font-medium text-gray-900">{trip.startDate}</p>
+                <p className="text-travel-text-muted text-xs uppercase font-bold tracking-wider">Start Date</p>
+                <p className="text-lg font-medium text-travel-text">{trip.startDate}</p>
             </div>
             <div>
-                <p className="text-gray-400 text-xs uppercase font-bold tracking-wider">End Date</p>
-                <p className="text-lg font-medium text-gray-900">{trip.endDate}</p>
+                <p className="text-travel-text-muted text-xs uppercase font-bold tracking-wider">End Date</p>
+                <p className="text-lg font-medium text-travel-text">{trip.endDate}</p>
             </div>
           </div>
 
           {/* Description */}
           <div className="mb-10">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">About the Trip</h3>
-            <div className="prose prose-blue text-gray-600 leading-relaxed whitespace-pre-wrap">
+            <h3 className="text-xl font-bold text-travel-text mb-4">About the Trip</h3>
+            <div className="prose prose-stone text-travel-text leading-relaxed whitespace-pre-wrap">
                 {trip.description}
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-gray-100">
+          <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-travel-border">
              {isOwner ? (
                 <>
-                    <button disabled className="flex-1 bg-gray-100 text-gray-500 py-3 rounded-lg font-bold cursor-not-allowed border border-gray-200">
+                    <button disabled className="flex-1 bg-travel-bg text-travel-text-muted py-3 rounded-lg font-bold cursor-not-allowed border border-travel-border">
                         You Own This Trip
                     </button>
+                    
                     <button onClick={handleDeleteTrip} className="px-6 py-3 bg-red-50 text-red-600 border border-red-200 rounded-lg font-bold hover:bg-red-100 transition">
                         Delete Trip 🗑️
                     </button>
@@ -246,13 +243,13 @@ export default function TripDetailsPage() {
                     {requesting ? "Cancelling..." : "Cancel Request ❌"}
                 </button>
              ) : (
-                <button onClick={handleJoinRequest} disabled={requesting} className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition disabled:bg-blue-300 shadow-md hover:shadow-lg transform active:scale-95 duration-200">
+                <button onClick={handleJoinRequest} disabled={requesting} className="flex-1 bg-travel-accent text-white py-3 rounded-lg font-bold hover:bg-travel-accent-hover transition disabled:bg-travel-border shadow-md hover:shadow-lg transform active:scale-95 duration-200">
                     {requesting ? "Sending..." : "Request to Join 🚀"}
                 </button>
              )}
              
              {!isOwner && (
-                 <Link href="/" className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 text-center transition">
+                 <Link href="/" className="px-6 py-3 border border-travel-border rounded-lg text-travel-text font-medium hover:bg-travel-bg text-center transition">
                     Back to Feed
                  </Link>
              )}

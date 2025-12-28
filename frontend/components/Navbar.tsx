@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 
 export default function Navbar() {
@@ -12,7 +12,7 @@ export default function Navbar() {
   const isActive = (path: string) => pathname === path;
 
   return (
-    <nav className="sticky top-0 z-50 w-full shadow-sm bg-white/70 backdrop-blur-md border-gray-100">
+    <nav className="sticky top-0 z-50 w-full shadow-sm bg-travel-bg/80 backdrop-blur-md border-b border-travel-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           
@@ -20,11 +20,11 @@ export default function Navbar() {
           <Link href="/" className="flex items-center gap-2 group">
             <span className="text-2xl group-hover:scale-110 transition-transform">✈️</span>
             {/* Full text on desktop */}
-            <span className="font-bold text-xl text-blue-600 tracking-tight hidden sm:block">
+            <span className="font-bold text-xl text-travel-text tracking-tight hidden sm:block">
               Travel Buddy
             </span>
             {/* Abbr on mobile to save space */}
-            <span className="font-bold text-xl text-blue-600 tracking-tight sm:hidden">
+            <span className="font-bold text-xl text-travel-text tracking-tight sm:hidden">
               TB
             </span>
           </Link>
@@ -32,13 +32,13 @@ export default function Navbar() {
           {/* Navigation Links */}
           <div className="flex items-center gap-3 md:gap-6"> 
             
-            {/* HOME LINK - Visible on desktop only */}
+            {/* HOME LINK */}
             <Link 
               href="/" 
-              className={`hidden md:block text-sm transition-colors hover:scale-95 ${
+              className={`hidden md:block text-sm transition-all hover:scale-95 ${
                 isActive("/") 
-                  ? "text-blue-600 font-bold"   
-                  : "text-gray-600 font-medium hover:text-blue-600"
+                  ? "text-travel-accent-hover font-bold"   
+                  : "text-travel-text-muted font-medium hover:text-travel-text"
               }`}
             >
               Home
@@ -49,10 +49,10 @@ export default function Navbar() {
               <>
                 <Link 
                   href="/dashboard" 
-                  className={`text-xs md:text-sm transition-colors hover:scale-95 ${
+                  className={`text-xs md:text-sm transition-all hover:scale-95 ${
                     isActive("/dashboard") 
-                      ? "text-blue-600 font-bold" 
-                      : "text-gray-600 font-medium hover:text-blue-600"
+                      ? "text-travel-accent-hover font-bold" 
+                      : "text-travel-text-muted font-medium hover:text-travel-text"
                   }`}
                 >
                   Dashboard
@@ -60,47 +60,56 @@ export default function Navbar() {
 
                 <Link 
                   href="/profile" 
-                  className={`text-xs md:text-sm transition-colors hover:scale-95 ${
+                  className={`text-xs md:text-sm transition-all hover:scale-95 ${
                     isActive("/profile") 
-                      ? "text-blue-600 font-bold" 
-                      : "text-gray-600 font-medium hover:text-blue-600"
+                      ? "text-travel-accent-hover font-bold" 
+                      : "text-travel-text-muted font-medium hover:text-travel-text"
                   }`}
                 >
                   Profile
                 </Link>
 
-                {/* Post Trip Button (Responsive Text) */}
+                {/* Post Trip Button */}
                 <Link 
                   href="/trips/create" 
-                  className={`px-3 py-2 md:px-4 md:py-2 rounded-full text-xs hover:scale-95 md:text-sm font-medium transition whitespace-nowrap ${
+                  className={`px-3 py-2 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-medium transition-all hover:scale-95 whitespace-nowrap ${
                     isActive("/trips/create")
-                        ? "bg-blue-700 text-white shadow-md"
-                        : "bg-blue-600 text-white hover:bg-blue-700"
+                        ? "bg-travel-accent-hover text-white shadow-md"
+                        : "bg-travel-accent text-white hover:bg-travel-accent-hover"
                   }`}
                 >
                   + Create <span className="hidden md:inline">Trip</span>
                 </Link>
 
+                {/* Divider */}
+                <div className="h-6 w-px bg-travel-border mx-1 md:mx-2"></div>
+
+                <button 
+                  onClick={() => signOut({ callbackUrl: "/" })} 
+                  className="text-red-500 hover:text-red-700 font-medium text-xs md:text-sm transition-all hover:scale-95"
+                >
+                  Logout
+                </button>
               </>
             ) : (
               // IF LOGGED OUT
               <>
                 <Link 
                   href="/auth/login" 
-                  className={`text-xs md:text-sm transition-colors hover:scale-95 ${
+                  className={`text-xs md:text-sm transition-all hover:scale-95 ${
                     isActive("/auth/login") 
-                      ? "text-blue-600 font-bold" 
-                      : "text-gray-600 font-medium hover:text-blue-600"
+                      ? "text-travel-accent-hover font-bold" 
+                      : "text-travel-text-muted font-medium hover:text-travel-text"
                   }`}
                 >
                   Login
                 </Link>
                 <Link 
                   href="/auth/register" 
-                  className={`px-3 py-2 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-medium transition hover:scale-95 ${
+                  className={`px-3 py-2 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-medium transition-all hover:scale-95 ${
                     isActive("/auth/register")
-                        ? "bg-blue-700 text-white"
-                        : "bg-blue-600 text-white hover:bg-blue-700"
+                        ? "bg-travel-accent-hover text-white"
+                        : "bg-travel-accent text-white hover:bg-travel-accent-hover"
                   }`}
                 >
                   Sign Up

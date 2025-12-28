@@ -1,1 +1,33 @@
 @import "tailwindcss";
+
+/* Define your custom Travel Buddy theme here.
+  These colors will be available as classes like:
+  bg-travel-bg, text-travel-accent, border-travel-border
+*/
+@theme {
+  /* 1. Main Background (#F9F8F6) */
+  --color-travel-bg: #F9F8F6;
+
+  /* 2. Card/Surface (#EFE9E3) */
+  --color-travel-card: #EFE9E3;
+
+  /* 3. Borders/Subtle Elements (#D9CFC7) */
+  --color-travel-border: #D9CFC7;
+
+  /* 4. Primary Accent/Buttons (#C9B59C) */
+  --color-travel-accent: #C9B59C;
+  /* 4b. Hover State (Darker version of Accent for interactions) */
+  --color-travel-accent-hover: #AB967D;
+
+  /* 5. Text Colors */
+  /* Main Text (Deep Brown - High Contrast) */
+  --color-travel-text: #4A4036;
+  /* Muted Text (Warm Grey - For dates/subtitles) */
+  --color-travel-text-muted: #857F79;
+}
+
+/* Optional: Set default background */
+body {
+  background-color: var(--color-travel-bg);
+  color: var(--color-travel-text);
+}

@@ -17,7 +17,7 @@ type TripFormValues = {
 export default function CreateTripPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-
+  
   const { register, handleSubmit, formState: { isSubmitting } } = useForm<TripFormValues>();
 
   // Protect Route
@@ -33,7 +33,7 @@ export default function CreateTripPage() {
     try {
       // @ts-expect-error -- Access token not typed yet
       let token = session.user.accessToken;
-
+      
       // Cleanup token
       if (typeof token === "string") token = token.replace(/"/g, "");
 
@@ -57,69 +57,69 @@ export default function CreateTripPage() {
     }
   };
 
-  if (status === "loading") return <p className="text-center mt-10">Loading...</p>;
+  if (status === "loading") return <p className="text-center mt-10 text-travel-text-muted">Loading...</p>;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md mx-auto bg-white rounded-xl shadow-lg overflow-hidden md:max-w-2xl p-8">
-        <h2 className="text-3xl font-bold text-blue-600 mb-6 text-center">Plan a New Trip 🌍</h2>
-
+    <div className="min-h-screen bg-travel-bg py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md mx-auto bg-travel-card rounded-xl shadow-lg border border-travel-border overflow-hidden md:max-w-2xl p-8">
+        <h2 className="text-3xl font-bold text-travel-text mb-6 text-center">Plan a New Trip</h2>
+        
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-
+          
           {/* Destination */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">Destination</label>
+            <label className="block text-sm font-medium text-travel-text">Destination</label>
             <input
               {...register("destination", { required: true })}
               type="text"
               placeholder="e.g. Goa, Paris, Manali"
-              className="mt-1 block w-full rounded-md border border-gray-300 p-3 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border border-travel-border px-3 py-2 text-travel-text placeholder-travel-text-muted focus:border-travel-accent focus:outline-none focus:ring-1 focus:ring-travel-accent sm:text-sm bg-white transition-colors"
             />
           </div>
 
           {/* Dates Row */}
           <div className="flex gap-4">
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700">Start Date</label>
+              <label className="block text-sm font-medium text-travel-text">Start Date</label>
               <input
                 {...register("startDate", { required: true })}
                 type="date"
-                className="mt-1 block w-full rounded-md border border-gray-300 p-3 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border border-travel-border px-3 py-2 text-travel-text focus:border-travel-accent focus:outline-none focus:ring-1 focus:ring-travel-accent sm:text-sm bg-white transition-colors"
               />
             </div>
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700">End Date</label>
+              <label className="block text-sm font-medium text-travel-text">End Date</label>
               <input
                 {...register("endDate", { required: true })}
                 type="date"
-                className="mt-1 block w-full rounded-md border border-gray-300 p-3 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border border-travel-border px-3 py-2 text-travel-text focus:border-travel-accent focus:outline-none focus:ring-1 focus:ring-travel-accent sm:text-sm bg-white transition-colors"
               />
             </div>
           </div>
 
           {/* Budget */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">Estimated Budget (₹)</label>
+            <label className="block text-sm font-medium text-travel-text">Estimated Budget (₹)</label>
             <input
-              {...register("budget", {
+              {...register("budget", { 
                 required: true,
                 pattern: /^[0-9]+$/,
               })}
               type="text"
               inputMode="numeric"
               placeholder="15000"
-              className="mt-1 block w-full rounded-md border border-gray-300 p-3 shadow-sm"
+              className="mt-1 block w-full rounded-md border border-travel-border px-3 py-2 text-travel-text placeholder-travel-text-muted focus:border-travel-accent focus:outline-none focus:ring-1 focus:ring-travel-accent sm:text-sm bg-white transition-colors"
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">Trip Description</label>
+            <label className="block text-sm font-medium text-travel-text">Trip Description</label>
             <textarea
               {...register("description", { required: true })}
               rows={4}
               placeholder="What's the plan? Chilling, Trekking, Sightseeing?"
-              className="mt-1 block w-full rounded-md border border-gray-300 p-3 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border border-travel-border px-3 py-2 text-travel-text placeholder-travel-text-muted focus:border-travel-accent focus:outline-none focus:ring-1 focus:ring-travel-accent sm:text-sm bg-white transition-colors"
             />
           </div>
 
@@ -127,9 +127,9 @@ export default function CreateTripPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full flex justify-center rounded-md bg-blue-600 px-4 py-3 text-sm font-bold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-blue-300"
+            className="w-full flex justify-center rounded-md bg-travel-accent px-4 py-3 text-sm font-bold text-white shadow-sm hover:bg-travel-accent-hover focus:outline-none focus:ring-2 focus:ring-travel-accent focus:ring-offset-2 disabled:bg-travel-border disabled:cursor-not-allowed transition-colors"
           >
-            {isSubmitting ? "Posting..." : "Post Trip 🚀"}
+            {isSubmitting ? "Posting..." : "Post Trip"}
           </button>
         </form>
       </div>

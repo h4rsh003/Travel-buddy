@@ -54,13 +54,14 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md space-y-8 rounded-lg bg-white p-8 shadow-lg">
+    <div className="flex min-h-screen items-center justify-center bg-travel-bg px-4">
+      {/* 🎨 Uses travel-card with border */}
+      <div className="w-full max-w-md space-y-8 rounded-lg bg-travel-card p-8 shadow-lg border border-travel-border">
         <div className="text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900">
+          <h2 className="text-3xl font-bold tracking-tight text-travel-text">
             Create an Account
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-2 text-sm text-travel-text-muted">
             Join Travel Buddy today
           </p>
         </div>
@@ -76,11 +77,11 @@ export default function RegisterPage() {
           <div className="space-y-4 rounded-md shadow-sm">
             {/* Name Input */}
             <div>
-              <label className="block text-sm font-medium text-gray-700">Name</label>
+              <label className="block text-sm font-medium text-travel-text">Name</label>
               <input
                 {...register("name")}
                 type="text"
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
+                className="mt-1 block w-full rounded-md border border-travel-border px-3 py-2 text-travel-text placeholder-travel-text-muted focus:border-travel-accent focus:outline-none focus:ring-1 focus:ring-travel-accent sm:text-sm bg-white"
                 placeholder="Your Name"
               />
               {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>}
@@ -88,11 +89,11 @@ export default function RegisterPage() {
 
             {/* Email Input */}
             <div>
-              <label className="block text-sm font-medium text-gray-700">Email</label>
+              <label className="block text-sm font-medium text-travel-text">Email</label>
               <input
                 {...register("email")}
                 type="email"
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
+                className="mt-1 block w-full rounded-md border border-travel-border px-3 py-2 text-travel-text placeholder-travel-text-muted focus:border-travel-accent focus:outline-none focus:ring-1 focus:ring-travel-accent sm:text-sm bg-white"
                 placeholder="you@example.com"
               />
               {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
@@ -100,18 +101,18 @@ export default function RegisterPage() {
 
             {/* Password Input with Eye Button */}
             <div>
-              <label className="block text-sm font-medium text-gray-700">Password</label>
+              <label className="block text-sm font-medium text-travel-text">Password</label>
               <div className="relative mt-1">
                 <input
                   {...register("password")}
                   type={showPassword ? "text" : "password"}
-                  className="block w-full rounded-md border border-gray-300 px-3 py-2 pr-10 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
+                  className="block w-full rounded-md border border-travel-border px-3 py-2 pr-10 text-travel-text placeholder-travel-text-muted focus:border-travel-accent focus:outline-none focus:ring-1 focus:ring-travel-accent sm:text-sm bg-white"
                   placeholder="Enter your password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 focus:outline-none"
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-travel-text-muted hover:text-travel-text focus:outline-none"
                 >
                   {showPassword ? (
                     <FiEyeOff className="h-5 w-5" aria-hidden="true" />
@@ -120,7 +121,7 @@ export default function RegisterPage() {
                   )}
                 </button>
               </div>
-              {/* Validation Message appears here immediately */}
+              {/* Validation Message */}
               {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>}
             </div>
           </div>
@@ -128,15 +129,15 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="group relative flex w-full justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-blue-400"
+            className="group relative flex w-full justify-center rounded-md border border-transparent bg-travel-accent px-4 py-2 text-sm font-medium text-white hover:bg-travel-accent-hover focus:outline-none focus:ring-2 focus:ring-travel-accent focus:ring-offset-2 disabled:bg-travel-border disabled:cursor-not-allowed transition-colors"
           >
             {isSubmitting ? "Creating Account..." : "Sign Up"}
           </button>
         </form>
 
-        <p className="text-center text-sm text-gray-600">
+        <p className="text-center text-sm text-travel-text-muted">
           Already have an account?{" "}
-          <Link href="/auth/login" className="font-medium text-blue-600 hover:text-blue-500">
+          <Link href="/auth/login" className="font-medium text-travel-accent hover:text-travel-accent-hover transition-colors">
             Sign in
           </Link>
         </p>
