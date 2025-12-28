@@ -18,7 +18,7 @@ export default function Footer() {
               href="mailto:harshshrivastava003@gmail.com" 
               className="text-travel-text-muted hover:text-travel-accent transition-colors text-sm"
             >
-              Email
+              harshshrivastava003@gmail.com
             </a>
             <a 
               href="https://www.linkedin.com/in/harsh-shrivastava003" 

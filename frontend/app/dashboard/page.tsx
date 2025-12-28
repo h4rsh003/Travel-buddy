@@ -1,9 +1,9 @@
-"use client";
+  "use client";
 
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
-import axios from "axios";
+import useAxiosAuth from "@/hooks/useAxiosAuth";
 import { toast } from "react-hot-toast"; 
 import Link from "next/link"; 
 import { FiCalendar, FiTrash2, FiUsers, FiMapPin, FiActivity, FiChevronDown, FiChevronUp, FiEdit2 } from "react-icons/fi";
@@ -28,26 +28,26 @@ type Trip = {
 };
 
 export default function DashboardPage() {
-  const { data: session, status } = useSession();
+  const {status } = useSession();
   const router = useRouter();
+  const axiosAuth = useAxiosAuth(); // Initialize the hook
+  
   const [trips, setTrips] = useState<Trip[]>([]); 
   const [loading, setLoading] = useState(true);
   
-  // 🟢 New States for UI
+  // UI States
   const [filter, setFilter] = useState<'ALL' | 'UPCOMING' | 'PAST'>('ALL');
   const [expandedTripId, setExpandedTripId] = useState<number | null>(null);
 
   // Fetch Logic
   const fetchMyTrips = useCallback(async () => {
-    if (!session?.user) return;
-    try {
-      // @ts-expect-error -- Access token is not yet typed in NextAuth
-      let token = session.user.accessToken;
-      if (typeof token === "string") token = token.replace(/"/g, "");
+    // Only fetch if authenticated
+    if (status !== "authenticated") return;
 
-      const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/trips/user/me`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+    try {
+      // CLEANER: No manual token extraction or headers needed!
+      // The hook automatically adds the Bearer token and handles 401 errors.
+      const res = await axiosAuth.get("/api/trips/user/me");
       setTrips(res.data);
     } catch (error) {
       console.error("Error fetching trips:", error);
@@ -55,27 +55,21 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [session]);
+  }, [status, axiosAuth]); // Add axiosAuth to dependency
 
   useEffect(() => {
     if (status === "unauthenticated") {
         router.push("/auth/login");
-    } else if (session?.user) {
+    } else if (status === "authenticated") {
         fetchMyTrips();
     }
-  }, [status, session, router, fetchMyTrips]); 
+  }, [status, router, fetchMyTrips]); 
 
   const handleAction = async (requestId: number, action: "accepted" | "rejected") => {
     const loadingToast = toast.loading(`Processing ${action}...`);
     try {
-      // 🛠️ FIX 1: Added description to @ts-expect-error
-      // @ts-expect-error -- Access token is not yet typed in NextAuth
-      let token = session.user.accessToken;
-      if (typeof token === "string") token = token.replace(/"/g, "");
-
-      await axios.patch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/requests/${requestId}/${action}`, {}, {
-         headers: { Authorization: `Bearer ${token}` }
-      });
+      //CLEANER: Just call the API
+      await axiosAuth.patch(`/api/requests/${requestId}/${action}`);
 
       toast.dismiss(loadingToast); 
       if (action === "accepted") toast.success("Request Accepted! 🎉");
@@ -94,14 +88,8 @@ export default function DashboardPage() {
     const loadingToast = toast.loading("Deleting trip...");
 
     try {
-       // 🛠️ FIX 2: Added description to @ts-expect-error
-       // @ts-expect-error -- Access token is not yet typed in NextAuth
-       let token = session.user.accessToken;
-       if (typeof token === "string") token = token.replace(/"/g, "");
-
-       await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/trips/${tripId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-       });
+       //CLEANER: Just call the API
+       await axiosAuth.delete(`/api/trips/${tripId}`);
 
        toast.dismiss(loadingToast);
        toast.success("Trip Deleted Successfully.");
@@ -149,7 +137,6 @@ export default function DashboardPage() {
                     {['ALL', 'UPCOMING', 'PAST'].map((f) => (
                         <button
                             key={f}
-                            // 🛠️ FIX 3: Replaced 'any' with specific string literal type
                             onClick={() => setFilter(f as 'ALL' | 'UPCOMING' | 'PAST')}
                             className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all ${
                                 filter === f 
@@ -209,39 +196,39 @@ export default function DashboardPage() {
                  
                  {/* Card Header */}
                  <div className="p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div>
-                        <div className="flex items-center gap-3 mb-1">
-                            <h3 className="text-xl font-bold text-travel-text">{trip.destination}</h3>
-                            <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${status.color}`}>
-                                {status.label}
-                            </span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-travel-text-muted">
-                            <FiCalendar />
-                            <span>{trip.startDate} — {trip.endDate}</span>
-                        </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-3 w-full md:w-auto">
-                        <Link href={`/trips/${trip.id}`} className="text-sm font-medium text-travel-accent hover:underline">
-                            View Details
-                        </Link>
-                        
-                        <div className="h-4 w-px bg-travel-border mx-1"></div>
+                   <div>
+                       <div className="flex items-center gap-3 mb-1">
+                           <h3 className="text-xl font-bold text-travel-text">{trip.destination}</h3>
+                           <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${status.color}`}>
+                               {status.label}
+                           </span>
+                       </div>
+                       <div className="flex items-center gap-2 text-sm text-travel-text-muted">
+                           <FiCalendar />
+                           <span>{trip.startDate} — {trip.endDate}</span>
+                       </div>
+                   </div>
+                   
+                   <div className="flex items-center gap-3 w-full md:w-auto">
+                       <Link href={`/trips/${trip.id}`} className="text-sm font-medium text-travel-accent hover:underline">
+                           View Details
+                       </Link>
+                       
+                       <div className="h-4 w-px bg-travel-border mx-1"></div>
 
-                        {/* Edit Button (Placeholder for now) */}
-                        <button className="p-2 text-travel-text-muted hover:bg-travel-bg rounded-lg transition" title="Edit Trip">
-                            <FiEdit2 />
-                        </button>
+                       {/* Edit Button (Placeholder for now) */}
+                       <button className="p-2 text-travel-text-muted hover:bg-travel-bg rounded-lg transition" title="Edit Trip">
+                           <FiEdit2 />
+                       </button>
 
-                        <button 
-                            onClick={() => handleDeleteTrip(trip.id)}
-                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
-                            title="Delete Trip"
-                        >
-                            <FiTrash2 />
-                        </button>
-                    </div>
+                       <button 
+                           onClick={() => handleDeleteTrip(trip.id)}
+                           className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
+                           title="Delete Trip"
+                       >
+                           <FiTrash2 />
+                       </button>
+                   </div>
                  </div>
                  
                  {/* Collapsible Requests Section */}

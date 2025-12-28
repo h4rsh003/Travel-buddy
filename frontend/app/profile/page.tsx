@@ -4,7 +4,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
-import axios from "axios";
+import useAxiosAuth from "@/hooks/useAxiosAuth"; 
 
 // 1. Define Types
 type UserProfile = {
@@ -23,8 +23,10 @@ type ProfileFormValues = {
 };
 
 export default function ProfilePage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession(); 
   const router = useRouter();
+  const axiosAuth = useAxiosAuth(); 
+
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [userData, setUserData] = useState<UserProfile | null>(null);
@@ -32,18 +34,11 @@ export default function ProfilePage() {
   const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm<ProfileFormValues>();
 
   const fetchProfile = useCallback(async () => {
-    if (!session?.user) return;
+    if (status !== "authenticated") return;
     try {
-      // @ts-expect-error -- Access token is not yet typed in NextAuth
-      let token = session.user.accessToken;
-      if (typeof token === "string") token = token.replace(/"/g, "");
-
-      const apiUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/profile`;
-      console.log("🔍 Fetching Profile from:", apiUrl); 
-
-      const res = await axios.get(apiUrl, {
-         headers: { Authorization: `Bearer ${token}` }
-      });
+      // No manual token extraction needed. 
+      // The hook handles the token and the @ts-expect-error is gone.
+      const res = await axiosAuth.get("/api/users/profile");
       
       setUserData(res.data);
       
@@ -59,7 +54,7 @@ export default function ProfilePage() {
     } finally {
       setLoading(false);
     }
-  }, [session, reset]);
+  }, [status, axiosAuth, reset]);
 
   // Fetch Profile Data
   useEffect(() => {
@@ -68,29 +63,22 @@ export default function ProfilePage() {
       return;
     }
     
-    if (session?.user) {
+    if (status === "authenticated") {
       fetchProfile();
     }
-  }, [status, router, session, fetchProfile]);
+  }, [status, router, fetchProfile]);
 
   const onSubmit = async (data: ProfileFormValues) => {
-    if (!session?.user) return;
     try {
         const interestsArray = data.interests.split(",").map((s) => s.trim());
           
-        // @ts-expect-error -- Access token fix
-        let token = session.user.accessToken;
-        if (typeof token === "string") token = token.replace(/"/g, "");
-
-        await axios.put(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/profile`, 
-            { 
-              name: data.name,
-              bio: data.bio, 
-              location: data.location, 
-              interests: interestsArray 
-            },
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
+        // Use axiosAuth for updates too
+        await axiosAuth.put("/api/users/profile", { 
+             name: data.name,
+             bio: data.bio, 
+             location: data.location, 
+             interests: interestsArray 
+        });
         
         alert("Profile Updated Successfully!");
         setIsEditing(false); 

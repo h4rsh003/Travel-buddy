@@ -5,6 +5,7 @@ import axios from "axios";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import useAxiosAuth from "@/hooks/useAxiosAuth";
 
 type TripDetails = {
   id: number;
@@ -29,6 +30,7 @@ export default function TripDetailsPage() {
   const { id } = useParams();
   const { data: session } = useSession();
   const router = useRouter();
+  const axiosAuth = useAxiosAuth(); 
   
   const [trip, setTrip] = useState<TripDetails | null>(null);
   const [loading, setLoading] = useState(true);
@@ -37,7 +39,7 @@ export default function TripDetailsPage() {
   const [hasRequested, setHasRequested] = useState(false);
   const [isAccepted, setIsAccepted] = useState(false);
 
-  // Fetch Trip Data
+  // Fetch Trip Data (Public - uses standard axios)
   useEffect(() => {
     const fetchTrip = async () => {
       try {
@@ -55,10 +57,9 @@ export default function TripDetailsPage() {
   // Check status on load
   useEffect(() => {
     if (trip && session?.user) {
-        // @ts-expect-error -- Accessing session ID safely
         const myId = session.user.id;
         
-        const myRequest = trip.joinRequests?.find((req) => req.userId === myId);
+        const myRequest = trip.joinRequests?.find((req) => req.userId === Number(myId));
 
         if (myRequest) {
             setHasRequested(true);
@@ -81,14 +82,7 @@ export default function TripDetailsPage() {
 
     try {
       setRequesting(true);
-      // @ts-expect-error -- Access token not typed in NextAuth
-      let token = session.user.accessToken;
-      if (typeof token === "string") token = token.replace(/"/g, "");
-
-      await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/requests/send`, 
-        { tripId: Number(id) },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await axiosAuth.post("/api/requests/send", { tripId: Number(id) });
 
       setHasRequested(true); 
     } catch (error) {
@@ -114,13 +108,7 @@ export default function TripDetailsPage() {
 
     try {
       setRequesting(true);
-      // @ts-expect-error -- Access token not typed in NextAuth
-      let token = session.user.accessToken;
-      if (typeof token === "string") token = token.replace(/"/g, "");
-
-      await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/requests/${id}`, {
-         headers: { Authorization: `Bearer ${token}` } 
-      });
+      await axiosAuth.delete(`/api/requests/${id}`);
 
       setHasRequested(false); 
       setIsAccepted(false);
@@ -138,13 +126,7 @@ export default function TripDetailsPage() {
     if (!confirm("Are you sure you want to delete this trip? This cannot be undone.")) return;
 
     try {
-      // @ts-expect-error -- Access token not typed in NextAuth
-      let token = session.user.accessToken;
-      if (typeof token === "string") token = token.replace(/"/g, "");
-
-      await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/trips/${id}`, {
-         headers: { Authorization: `Bearer ${token}` }
-      });
+      await axiosAuth.delete(`/api/trips/${id}`);
 
       alert("Trip Deleted Successfully.");
       router.push("/"); 
@@ -167,8 +149,7 @@ export default function TripDetailsPage() {
     </div>
   );
 
-  // @ts-expect-error -- session user id typing mismatch with backend response
-  const isOwner = session?.user?.id === trip.user.id;
+  const isOwner = Number(session?.user?.id) === trip.user.id;
 
   return (
     <div className="min-h-screen bg-travel-bg py-12 px-4 sm:px-6 lg:px-8">

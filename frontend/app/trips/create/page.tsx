@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import axios from "axios";
+import useAxiosAuth from "@/hooks/useAxiosAuth"; 
 import { useEffect } from "react";
 
 type TripFormValues = {
@@ -15,8 +15,9 @@ type TripFormValues = {
 };
 
 export default function CreateTripPage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
+  const axiosAuth = useAxiosAuth();
   
   const { register, handleSubmit, formState: { isSubmitting } } = useForm<TripFormValues>();
 
@@ -28,26 +29,12 @@ export default function CreateTripPage() {
   }, [status, router]);
 
   const onSubmit = async (data: TripFormValues) => {
-    if (!session?.user) return;
-
+    
     try {
-      // @ts-expect-error -- Access token not typed yet
-      let token = session.user.accessToken;
-      
-      // Cleanup token
-      if (typeof token === "string") token = token.replace(/"/g, "");
-
-      // Send data to Backend
-      await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/trips`, 
-        {
+      await axiosAuth.post("/api/trips", {
           ...data,
           budget: Number(data.budget),
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      });
 
       alert("Trip Created Successfully!");
       router.push("/"); // Redirect to Home (Feed)
