@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
+import ThemeToggle from "@/components/ThemeToggle"; 
 
 export default function Navbar() {
   const { data: session } = useSession();
@@ -12,33 +13,31 @@ export default function Navbar() {
   const isActive = (path: string) => pathname === path;
 
   return (
-    <nav className="sticky top-0 z-50 w-full shadow-sm bg-travel-bg/80 backdrop-blur-md border-b border-travel-border">
+    <nav className="sticky top-0 z-50 w-full bg-travel-bg/80 backdrop-blur-md border-b border-travel-border transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           
-          {/* Logo */}
+          {/* ✨ CATCHY LOGO: Gradient Text */}
           <Link href="/" className="flex items-center gap-2 group">
-            <span className="text-2xl group-hover:scale-110 transition-transform">✈️</span>
-            {/* Full text on desktop */}
-            <span className="font-bold text-xl text-travel-text tracking-tight hidden sm:block">
+            <span className="text-2xl group-hover:scale-110 transition-transform duration-300">✈️</span>
+            <span className="font-bold text-xl tracking-tight hidden sm:block bg-gradient-to-r from-travel-accent to-orange-500 bg-clip-text text-transparent">
               Travel Buddy
             </span>
-            {/* Abbr on mobile to save space */}
-            <span className="font-bold text-xl text-travel-text tracking-tight sm:hidden">
+            <span className="font-bold text-xl text-travel-accent tracking-tight sm:hidden">
               TB
             </span>
           </Link>
 
           {/* Navigation Links */}
-          <div className="flex items-center gap-3 md:gap-6"> 
+          <div className="flex items-center gap-2 md:gap-4"> 
             
-            {/* HOME LINK */}
+            {/* HOME LINK - Visible on desktop only */}
             <Link 
               href="/" 
-              className={`hidden md:block text-sm transition-all hover:scale-95 ${
+              className={`hidden md:block px-3 py-2 rounded-full text-sm transition-all duration-200 ${
                 isActive("/") 
-                  ? "text-travel-accent-hover font-bold"   
-                  : "text-travel-text-muted font-medium hover:text-travel-text"
+                  ? "bg-travel-accent/10 text-travel-accent font-bold"   // ✨ Active Pill Style
+                  : "text-travel-text-muted font-medium hover:text-travel-text hover:bg-gray-100/50 dark:hover:bg-white/5"
               }`}
             >
               Home
@@ -49,10 +48,10 @@ export default function Navbar() {
               <>
                 <Link 
                   href="/dashboard" 
-                  className={`text-xs md:text-sm transition-all hover:scale-95 ${
+                  className={`text-xs md:text-sm px-3 py-2 rounded-full transition-all duration-200 ${
                     isActive("/dashboard") 
-                      ? "text-travel-accent-hover font-bold" 
-                      : "text-travel-text-muted font-medium hover:text-travel-text"
+                      ? "bg-travel-accent/10 text-travel-accent font-bold" 
+                      : "text-travel-text-muted font-medium hover:text-travel-text hover:bg-gray-100/50 dark:hover:bg-white/5"
                   }`}
                 >
                   Dashboard
@@ -60,62 +59,53 @@ export default function Navbar() {
 
                 <Link 
                   href="/profile" 
-                  className={`text-xs md:text-sm transition-all hover:scale-95 ${
+                  className={`text-xs md:text-sm px-3 py-2 rounded-full transition-all duration-200 ${
                     isActive("/profile") 
-                      ? "text-travel-accent-hover font-bold" 
-                      : "text-travel-text-muted font-medium hover:text-travel-text"
+                      ? "bg-travel-accent/10 text-travel-accent font-bold" 
+                      : "text-travel-text-muted font-medium hover:text-travel-text hover:bg-gray-100/50 dark:hover:bg-white/5"
                   }`}
                 >
                   Profile
                 </Link>
 
-                {/* Post Trip Button */}
+                {/* ✨ CATCHY BUTTON: Gradient Background */}
                 <Link 
                   href="/trips/create" 
-                  className={`px-3 py-2 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-medium transition-all hover:scale-95 whitespace-nowrap ${
+                  className={`px-4 py-2 rounded-full text-xs md:text-sm font-bold text-white transition-all hover:scale-105 shadow-md hover:shadow-lg ${
                     isActive("/trips/create")
-                        ? "bg-travel-accent-hover text-white shadow-md"
-                        : "bg-travel-accent text-white hover:bg-travel-accent-hover"
+                        ? "bg-gradient-to-r from-travel-accent-hover to-orange-600 ring-2 ring-offset-2 ring-travel-accent"
+                        : "bg-gradient-to-r from-travel-accent to-orange-500"
                   }`}
                 >
                   + Create <span className="hidden md:inline">Trip</span>
                 </Link>
-
-                {/* Divider */}
-                <div className="h-6 w-px bg-travel-border mx-1 md:mx-2"></div>
-
-                <button 
-                  onClick={() => signOut({ callbackUrl: "/" })} 
-                  className="text-red-500 hover:text-red-700 font-medium text-xs md:text-sm transition-all hover:scale-95"
-                >
-                  Logout
-                </button>
               </>
             ) : (
               // IF LOGGED OUT
               <>
                 <Link 
                   href="/auth/login" 
-                  className={`text-xs md:text-sm transition-all hover:scale-95 ${
+                  className={`text-xs md:text-sm px-3 py-2 rounded-full transition-all duration-200 ${
                     isActive("/auth/login") 
-                      ? "text-travel-accent-hover font-bold" 
-                      : "text-travel-text-muted font-medium hover:text-travel-text"
+                      ? "bg-travel-accent/10 text-travel-accent font-bold" 
+                      : "text-travel-text-muted font-medium hover:text-travel-text hover:bg-gray-100/50 dark:hover:bg-white/5"
                   }`}
                 >
                   Login
                 </Link>
                 <Link 
                   href="/auth/register" 
-                  className={`px-3 py-2 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-medium transition-all hover:scale-95 ${
-                    isActive("/auth/register")
-                        ? "bg-travel-accent-hover text-white"
-                        : "bg-travel-accent text-white hover:bg-travel-accent-hover"
-                  }`}
+                  className="px-4 py-2 rounded-full text-xs md:text-sm font-bold text-white bg-gradient-to-r from-travel-accent to-orange-500 hover:from-travel-accent-hover hover:to-orange-600 transition-all hover:scale-105 shadow-md"
                 >
                   Sign Up
                 </Link>
               </>
             )}
+
+            {/* 🌗 Global Theme Toggle (Always visible) */}
+            <div className="pl-2 border-l border-travel-border ml-1">
+                <ThemeToggle />
+            </div>
           </div>
         </div>
       </div>

@@ -1,33 +1,57 @@
 @import "tailwindcss";
 
-/* Define your custom Travel Buddy theme here.
-  These colors will be available as classes like:
-  bg-travel-bg, text-travel-accent, border-travel-border
-*/
+/* 1. Map Tailwind Classes to CSS Variables */
 @theme {
-  /* 1. Main Background (#F9F8F6) */
-  --color-travel-bg: #F9F8F6;
-
-  /* 2. Card/Surface (#EFE9E3) */
-  --color-travel-card: #EFE9E3;
-
-  /* 3. Borders/Subtle Elements (#D9CFC7) */
-  --color-travel-border: #D9CFC7;
-
-  /* 4. Primary Accent/Buttons (#C9B59C) */
-  --color-travel-accent: #C9B59C;
-  /* 4b. Hover State (Darker version of Accent for interactions) */
-  --color-travel-accent-hover: #AB967D;
-
-  /* 5. Text Colors */
-  /* Main Text (Deep Brown - High Contrast) */
-  --color-travel-text: #4A4036;
-  /* Muted Text (Warm Grey - For dates/subtitles) */
-  --color-travel-text-muted: #857F79;
+  --color-travel-bg: var(--travel-bg);
+  --color-travel-card: var(--travel-card);
+  --color-travel-border: var(--travel-border);
+  
+  /* The "Catchy" Accent Color */
+  --color-travel-accent: var(--travel-accent);
+  --color-travel-accent-hover: var(--travel-accent-hover);
+  
+  /* Typography */
+  --color-travel-text: var(--travel-text);
+  --color-travel-text-muted: var(--travel-text-muted);
 }
 
-/* Optional: Set default background */
+/* 2. LIGHT THEME (Clean & Modern) */
+:root {
+  --travel-bg: #F8FAFC;       /* Slate 50 (Paper White) */
+  --travel-card: #FFFFFF;     /* Pure White */
+  --travel-border: #E2E8F0;   /* Slate 200 */
+  
+  /* Sunset Rose Accent (Matches perfectly with Orange-500) */
+  --travel-accent: #E11D48;   /* Rose 600 */
+  --travel-accent-hover: #BE123C; /* Rose 700 */
+  
+  --travel-text: #0F172A;     /* Slate 900 (High Contrast) */
+  --travel-text-muted: #64748B; /* Slate 500 */
+}
+
+/* 3. DARK THEME (Midnight Luxury) */
+.dark {
+  --travel-bg: #020617;       /* Slate 950 (Deep Midnight) */
+  --travel-card: #0F172A;     /* Slate 900 */
+  --travel-border: #1E293B;   /* Slate 800 */
+  
+  /* Lighter Rose for Dark Mode Visibility */
+  --travel-accent: #FB7185;   /* Rose 400 */
+  --travel-accent-hover: #F43F5E; /* Rose 500 */
+  
+  --travel-text: #F8FAFC;     /* Slate 50 (Almost White) */
+  --travel-text-muted: #94A3B8; /* Slate 400 */
+}
+
+/* 4. Professional Reset & Smooth Transitions */
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 body {
-  background-color: var(--color-travel-bg);
-  color: var(--color-travel-text);
+  background-color: var(--travel-bg);
+  color: var(--travel-text);
+  /* Smoothly transition colors when toggling themes */
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
