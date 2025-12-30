@@ -4,13 +4,24 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import ThemeToggle from "@/components/ThemeToggle"; 
+import { useEffect } from "react"; 
+import useAxiosAuth from "@/hooks/useAxiosAuth";
 
 export default function Navbar() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession(); 
   const pathname = usePathname(); 
-
+  const axiosAuth = useAxiosAuth(); 
   // Helper to check if link is active
   const isActive = (path: string) => pathname === path;
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      axiosAuth.get("/api/users/profile").catch(() => {
+        // The error is caught here to prevent console noise, 
+        // but the 'useAxiosAuth' interceptor has already triggered the logout.
+      });
+    }
+  }, [status, axiosAuth]);
 
   return (
     <nav className="sticky top-0 z-50 w-full bg-travel-bg/80 backdrop-blur-md border-b border-travel-border transition-all duration-300">
