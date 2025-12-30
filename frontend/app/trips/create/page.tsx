@@ -60,7 +60,7 @@ export default function CreateTripPage() {
               {...register("destination", { required: true })}
               type="text"
               placeholder="e.g. Goa, Paris, Manali"
-              className="mt-1 block w-full rounded-md border border-travel-border px-3 py-2 text-travel-text placeholder-travel-text-muted focus:border-travel-accent focus:outline-none focus:ring-1 focus:ring-travel-accent sm:text-sm bg-white transition-colors"
+              className="mt-1 block w-full rounded-md border border-travel-border px-3 py-2 text-travel-text placeholder-travel-text-muted focus:border-travel-accent focus:outline-none focus:ring-1 focus:ring-travel-accent sm:text-sm bg-travel-bg transition-colors"
             />
           </div>
 
@@ -71,7 +71,7 @@ export default function CreateTripPage() {
               <input
                 {...register("startDate", { required: true })}
                 type="date"
-                className="mt-1 block w-full rounded-md border border-travel-border px-3 py-2 text-travel-text focus:border-travel-accent focus:outline-none focus:ring-1 focus:ring-travel-accent sm:text-sm bg-white transition-colors"
+                className="mt-1 block w-full rounded-md border border-travel-border px-3 py-2 text-travel-text focus:border-travel-accent focus:outline-none focus:ring-1 focus:ring-travel-accent sm:text-sm bg-travel-bg transition-colors"
               />
             </div>
             <div className="flex-1">
@@ -79,7 +79,7 @@ export default function CreateTripPage() {
               <input
                 {...register("endDate", { required: true })}
                 type="date"
-                className="mt-1 block w-full rounded-md border border-travel-border px-3 py-2 text-travel-text focus:border-travel-accent focus:outline-none focus:ring-1 focus:ring-travel-accent sm:text-sm bg-white transition-colors"
+                className="mt-1 block w-full rounded-md border border-travel-border px-3 py-2 text-travel-text focus:border-travel-accent focus:outline-none focus:ring-1 focus:ring-travel-accent sm:text-sm bg-travel-bg transition-colors"
               />
             </div>
           </div>
@@ -95,7 +95,7 @@ export default function CreateTripPage() {
               type="text"
               inputMode="numeric"
               placeholder="15000"
-              className="mt-1 block w-full rounded-md border border-travel-border px-3 py-2 text-travel-text placeholder-travel-text-muted focus:border-travel-accent focus:outline-none focus:ring-1 focus:ring-travel-accent sm:text-sm bg-white transition-colors"
+              className="mt-1 block w-full rounded-md border border-travel-border px-3 py-2 text-travel-text placeholder-travel-text-muted focus:border-travel-accent focus:outline-none focus:ring-1 focus:ring-travel-accent sm:text-sm bg-travel-bg transition-colors"
             />
           </div>
 
@@ -106,7 +106,7 @@ export default function CreateTripPage() {
               {...register("description", { required: true })}
               rows={4}
               placeholder="What's the plan? Chilling, Trekking, Sightseeing?"
-              className="mt-1 block w-full rounded-md border border-travel-border px-3 py-2 text-travel-text placeholder-travel-text-muted focus:border-travel-accent focus:outline-none focus:ring-1 focus:ring-travel-accent sm:text-sm bg-white transition-colors"
+              className="mt-1 block w-full rounded-md border border-travel-border px-3 py-2 text-travel-text placeholder-travel-text-muted focus:border-travel-accent focus:outline-none focus:ring-1 focus:ring-travel-accent sm:text-sm bg-travel-bg transition-colors"
             />
           </div>
 
