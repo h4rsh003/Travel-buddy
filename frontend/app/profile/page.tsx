@@ -36,8 +36,6 @@ export default function ProfilePage() {
   const fetchProfile = useCallback(async () => {
     if (status !== "authenticated") return;
     try {
-      // No manual token extraction needed. 
-      // The hook handles the token and the @ts-expect-error is gone.
       const res = await axiosAuth.get("/api/users/profile");
       
       setUserData(res.data);
@@ -95,7 +93,6 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-travel-bg py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl mx-auto bg-travel-card rounded-2xl shadow-sm border border-travel-border overflow-hidden">
             
-            {/* Header / Cover Area - Uses Accent Color */}
             <div className="bg-travel-accent h-32 relative">
                 <div className="absolute -bottom-10 left-8">
                     <div className="h-24 w-24 bg-travel-card rounded-full p-1 shadow-lg">
@@ -107,14 +104,13 @@ export default function ProfilePage() {
             </div>
 
             <div className="pt-12 px-8 pb-8">
-                <div className="flex justify-between items-start">
+                <div className="flex flex-col sm:flex-row justify-between items-start">
                     <div>
                         <h1 className="text-2xl font-bold text-travel-text">{userData?.name}</h1>
                         <p className="text-travel-text-muted text-sm">{userData?.email}</p>
                     </div>
                     
-                    {/* Buttons Container */}
-                    <div className="flex gap-3">
+                    <div className="flex mt-4 sm:mt-0 gap-3">
                         <button 
                             onClick={() => setIsEditing(!isEditing)}
                             className={`px-4 py-2 rounded-lg font-medium text-sm transition ${
