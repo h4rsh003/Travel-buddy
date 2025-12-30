@@ -3,14 +3,14 @@
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
-import ThemeToggle from "@/components/ThemeToggle"; 
-import { useEffect } from "react"; 
+import ThemeToggle from "@/components/ThemeToggle";
+import { useEffect } from "react";
 import useAxiosAuth from "@/hooks/useAxiosAuth";
 
 export default function Navbar() {
-  const { data: session, status } = useSession(); 
-  const pathname = usePathname(); 
-  const axiosAuth = useAxiosAuth(); 
+  const { data: session, status } = useSession();
+  const pathname = usePathname();
+  const axiosAuth = useAxiosAuth();
   // Helper to check if link is active
   const isActive = (path: string) => pathname === path;
 
@@ -39,16 +39,15 @@ export default function Navbar() {
           </Link>
 
           {/* Navigation Links */}
-          <div className="flex items-center gap-2 md:gap-4"> 
-            
+          <div className="flex items-center gap-2 md:gap-4">
+
             {/* HOME LINK - Visible on desktop only */}
-            <Link 
-              href="/" 
-              className={`hidden md:block px-3 py-2 rounded-full text-sm transition-all duration-200 ${
-                isActive("/") 
+            <Link
+              href="/"
+              className={`hidden md:block px-3 py-2 rounded-full text-sm transition-all duration-200 ${isActive("/")
                   ? "bg-travel-accent/10 text-travel-accent font-bold"
                   : "text-travel-text-muted font-medium hover:text-travel-text hover:bg-gray-100/50 dark:hover:bg-white/5"
-              }`}
+                }`}
             >
               Home
             </Link>
@@ -56,55 +55,56 @@ export default function Navbar() {
             {session ? (
               // IF LOGGED IN
               <>
-                <Link 
-                  href="/dashboard" 
-                  className={`text-xs md:text-sm px-3 py-2 rounded-full transition-all duration-200 ${
-                    isActive("/dashboard") 
-                      ? "bg-travel-accent/10 text-travel-accent font-bold" 
+                <Link
+                  href="/dashboard"
+                  className={`text-xs md:text-sm px-3 py-2 rounded-full transition-all duration-200 ${isActive("/dashboard")
+                      ? "bg-travel-accent/10 text-travel-accent font-bold"
                       : "text-travel-text-muted font-medium hover:text-travel-text hover:bg-gray-100/50 dark:hover:bg-white/5"
-                  }`}
+                    }`}
                 >
                   Dashboard
                 </Link>
 
-                <Link 
-                  href="/profile" 
-                  className={`text-xs md:text-sm px-3 py-2 rounded-full transition-all duration-200 ${
-                    isActive("/profile") 
-                      ? "bg-travel-accent/10 text-travel-accent font-bold" 
+                <Link
+                  href="/profile"
+                  className={`text-xs md:text-sm px-3 py-2 rounded-full transition-all duration-200 ${isActive("/profile")
+                      ? "bg-travel-accent/10 text-travel-accent font-bold"
                       : "text-travel-text-muted font-medium hover:text-travel-text hover:bg-gray-100/50 dark:hover:bg-white/5"
-                  }`}
+                    }`}
                 >
                   Profile
                 </Link>
 
                 {/* CATCHY BUTTON: Gradient Background */}
-                <Link 
-                  href="/trips/create" 
-                  className={`px-4 py-2 rounded-full text-xs md:text-sm font-bold text-white transition-all hover:scale-105 shadow-md hover:shadow-lg ${
-                    isActive("/trips/create")
-                        ? "bg-linear-to-r from-travel-accent-hover to-orange-600 ring-2 ring-offset-2 ring-travel-accent"
-                        : "bg-linear-to-r from-travel-accent to-orange-500"
-                  }`}
+                <Link
+                  href="/trips/create"
+                  className={`inline-flex items-center gap-1 leading-none
+                  px-4 py-1 rounded-full text-xs md:text-sm font-bold text-white 
+                  transition-all hover:scale-105 shadow-md hover:shadow-lg
+                  ${isActive("/trips/create")
+                      ? "bg-linear-to-r from-travel-accent-hover to-orange-600 ring-2 ring-offset-2 ring-travel-accent"
+                      : "bg-linear-to-r from-travel-accent to-orange-500"
+                    }`}
                 >
-                  + Create <span className="hidden md:inline">Trip</span>
+                  <span className="text-base md:text-lg mb-1">+</span>
+                  <span>Create <span className="hidden md:inline">Trip</span></span>
                 </Link>
+
               </>
             ) : (
               // IF LOGGED OUT
               <>
-                <Link 
-                  href="/auth/login" 
-                  className={`text-xs md:text-sm px-3 py-2 rounded-full transition-all duration-200 ${
-                    isActive("/auth/login") 
-                      ? "bg-travel-accent/10 text-travel-accent font-bold" 
+                <Link
+                  href="/auth/login"
+                  className={`text-xs md:text-sm px-3 py-2 rounded-full transition-all duration-200 ${isActive("/auth/login")
+                      ? "bg-travel-accent/10 text-travel-accent font-bold"
                       : "text-travel-text-muted font-medium hover:text-travel-text hover:bg-gray-100/50 dark:hover:bg-white/5"
-                  }`}
+                    }`}
                 >
                   Login
                 </Link>
-                <Link 
-                  href="/auth/register" 
+                <Link
+                  href="/auth/register"
                   className="px-4 py-2 rounded-full text-xs md:text-sm font-bold text-white bg-linear-to-r from-travel-accent to-orange-500 hover:from-travel-accent-hover hover:to-orange-600 transition-all hover:scale-105 shadow-md"
                 >
                   Sign Up
@@ -114,7 +114,7 @@ export default function Navbar() {
 
             {/* Global Theme Toggle (Always visible) */}
             <div className="pl-2 border-l border-travel-border ml-1">
-                <ThemeToggle />
+              <ThemeToggle />
             </div>
           </div>
         </div>
