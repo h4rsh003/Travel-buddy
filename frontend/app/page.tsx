@@ -76,7 +76,7 @@ export default function Home() {
                 onChange={(e) => setSearchQuery(e.target.value)} 
                 className="flex-1 bg-transparent border-none focus:ring-0 text-travel-text placeholder:text-travel-text-muted px-4 py-3 outline-none w-full min-w-0"
               />
-              <button className="hidden sm:block bg-travel-text text-travel-bg px-8 py-3 rounded-full font-bold hover:opacity-90 transition shadow-md whitespace-nowrap">
+              <button className="hidden cursor-pointer sm:block bg-travel-text text-travel-bg px-8 py-3 rounded-full font-bold hover:opacity-90 transition shadow-md whitespace-nowrap">
                 Search
               </button>
            </div>

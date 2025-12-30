@@ -45,8 +45,6 @@ export default function DashboardPage() {
     if (status !== "authenticated") return;
 
     try {
-      // CLEANER: No manual token extraction or headers needed!
-      // The hook automatically adds the Bearer token and handles 401 errors.
       const res = await axiosAuth.get("/api/trips/user/me");
       setTrips(res.data);
     } catch (error) {
@@ -55,7 +53,7 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [status, axiosAuth]); // Add axiosAuth to dependency
+  }, [status, axiosAuth]); 
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -72,7 +70,7 @@ export default function DashboardPage() {
       await axiosAuth.patch(`/api/requests/${requestId}/${action}`);
 
       toast.dismiss(loadingToast); 
-      if (action === "accepted") toast.success("Request Accepted! 🎉");
+      if (action === "accepted") toast.success("Request Accepted!");
       else toast.success("Request Rejected.");
       
       fetchMyTrips(); 
@@ -112,7 +110,6 @@ export default function DashboardPage() {
     return { label: "Upcoming", color: "bg-blue-100 text-blue-700", type: 'UPCOMING' };
   };
 
-  // 🔍 Filter Logic
   const filteredTrips = trips.filter(trip => {
       const status = getTripStatus(trip.startDate);
       if (filter === 'ALL') return true;
@@ -132,7 +129,7 @@ export default function DashboardPage() {
         <div className="mb-10">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
                 <h1 className="text-3xl font-bold text-travel-text">My Dashboard</h1>
-                {/* 🟢 Filter Tabs */}
+                {/* Filter Tabs */}
                 <div className="flex bg-travel-card border border-travel-border rounded-lg p-1 mt-4 md:mt-0">
                     {['ALL', 'UPCOMING', 'PAST'].map((f) => (
                         <button
@@ -141,7 +138,7 @@ export default function DashboardPage() {
                             className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all ${
                                 filter === f 
                                 ? 'bg-travel-accent text-white shadow-sm' 
-                                : 'text-travel-text-muted hover:bg-travel-bg'
+                                : 'text-travel-text-muted cursor-pointer hover:bg-travel-bg'
                             }`}
                         >
                             {f}
@@ -217,13 +214,13 @@ export default function DashboardPage() {
                        <div className="h-4 w-px bg-travel-border mx-1"></div>
 
                        {/* Edit Button (Placeholder for now) */}
-                       <button className="p-2 text-travel-text-muted hover:bg-travel-bg rounded-lg transition" title="Edit Trip">
+                       {/* <button className="p-2 text-travel-text-muted hover:bg-travel-bg rounded-lg transition" title="Edit Trip">
                            <FiEdit2 />
-                       </button>
+                       </button> */}
 
                        <button 
                            onClick={() => handleDeleteTrip(trip.id)}
-                           className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
+                           className="p-2 text-red-500 cursor-pointer hover:bg-red-50 rounded-lg transition"
                            title="Delete Trip"
                        >
                            <FiTrash2 />
@@ -235,7 +232,7 @@ export default function DashboardPage() {
                  <div className="border-t border-travel-border bg-travel-bg/30">
                     <button 
                         onClick={() => setExpandedTripId(isExpanded ? null : trip.id)}
-                        className="w-full px-6 py-3 flex items-center justify-between text-xs font-bold text-travel-text-muted hover:bg-travel-bg/50 transition"
+                        className="w-full cursor-pointer px-6 py-3 flex items-center justify-between text-xs font-bold text-travel-text-muted hover:bg-travel-bg/50 transition"
                     >
                         <span className="uppercase tracking-wide flex items-center gap-2">
                            <FiUsers /> Join Requests

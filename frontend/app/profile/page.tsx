@@ -113,7 +113,7 @@ export default function ProfilePage() {
                         <div className="flex mt-4 sm:mt-0 gap-3">
                             <button
                                 onClick={() => setIsEditing(!isEditing)}
-                                className={`px-4 py-2 rounded-lg font-medium text-sm transition
+                                className={`px-4 py-2 rounded-lg font-medium text-sm transition cursor-pointer
     ${isEditing
                                         ? "bg-travel-bg text-travel-text hover:bg-travel-card hover:text-travel-text border border-travel-border"
                                         : "bg-travel-accent text-white hover:bg-travel-accent-hover"
@@ -127,7 +127,7 @@ export default function ProfilePage() {
                             {/* Logout Button */}
                             <button
                                 onClick={() => signOut({ callbackUrl: "/" })}
-                                className="px-4 py-2 bg-red-50 text-red-600 rounded-lg font-medium text-sm hover:bg-red-100 transition border border-red-200"
+                                className="px-4 py-2 bg-red-50 text-red-600 cursor-pointer rounded-lg font-medium text-sm hover:bg-red-100 transition border border-red-200"
                             >
                                 Logout
                             </button>
@@ -174,7 +174,7 @@ export default function ProfilePage() {
                                 <p className="text-xs text-travel-text-muted mt-1">Separate with commas (e.g. Hiking, Music)</p>
                             </div>
                             <div className="flex justify-end pt-2">
-                                <button type="submit" disabled={isSubmitting} className="px-6 py-2 bg-travel-accent text-white rounded-lg hover:bg-travel-accent-hover font-medium transition disabled:opacity-70">
+                                <button type="submit" disabled={isSubmitting} className="px-6 py-2 cursor-pointer bg-travel-accent text-white rounded-lg hover:bg-travel-accent-hover font-medium transition disabled:opacity-70">
                                     {isSubmitting ? "Saving..." : "Save Changes"}
                                 </button>
                             </div>

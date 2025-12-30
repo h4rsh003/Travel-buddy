@@ -113,7 +113,7 @@ export default function CreateTripPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full flex justify-center rounded-md bg-travel-accent px-4 py-3 text-sm font-bold text-white shadow-sm hover:bg-travel-accent-hover focus:outline-none focus:ring-2 focus:ring-travel-accent focus:ring-offset-2 disabled:bg-travel-border disabled:cursor-not-allowed transition-colors"
+            className="w-full flex justify-center rounded-md bg-travel-accent px-4 py-3 text-sm font-bold cursor-pointer text-white shadow-sm hover:bg-travel-accent-hover focus:outline-none focus:ring-2 focus:ring-travel-accent focus:ring-offset-2 disabled:bg-travel-border disabled:cursor-not-allowed transition-colors"
           >
             {isSubmitting ? "Posting..." : "Post Trip"}
           </button>
