@@ -64,8 +64,7 @@ export default function CreateTripPage() {
             />
           </div>
 
-          {/* Dates Row */}
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <label className="block text-sm font-medium text-travel-text">Start Date</label>
               <input
