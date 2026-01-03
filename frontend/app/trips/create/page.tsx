@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import useAxiosAuth from "@/hooks/useAxiosAuth"; 
 import { useEffect } from "react";
+import toast from "react-hot-toast";
 
 type TripFormValues = {
   destination: string;
@@ -19,7 +20,13 @@ export default function CreateTripPage() {
   const router = useRouter();
   const axiosAuth = useAxiosAuth();
   
-  const { register, handleSubmit, formState: { isSubmitting } } = useForm<TripFormValues>();
+  const { 
+    register, 
+    handleSubmit, 
+    formState: { errors, isSubmitting, isValid } 
+  } = useForm<TripFormValues>({
+    mode: "onChange" 
+  });
 
   // Protect Route
   useEffect(() => {
@@ -29,18 +36,17 @@ export default function CreateTripPage() {
   }, [status, router]);
 
   const onSubmit = async (data: TripFormValues) => {
-    
     try {
       await axiosAuth.post("/api/trips", {
           ...data,
           budget: Number(data.budget),
       });
 
-      alert("Trip Created Successfully!");
-      router.push("/"); // Redirect to Home (Feed)
+      toast.success("Trip Created Successfully!");
+      router.push("/"); 
     } catch (error) {
       console.error(error);
-      alert("Failed to create trip.");
+      toast.error("Failed to create trip.");
     }
   };
 
@@ -57,29 +63,44 @@ export default function CreateTripPage() {
           <div>
             <label className="block text-sm font-medium text-travel-text">Destination</label>
             <input
-              {...register("destination", { required: true })}
+              {...register("destination", { required: "Destination is required" })}
               type="text"
               placeholder="e.g. Goa, Paris, Manali"
-              className="mt-1 block w-full rounded-md border border-travel-border px-3 py-2 text-travel-text placeholder-travel-text-muted focus:border-travel-accent focus:outline-none focus:ring-1 focus:ring-travel-accent sm:text-sm bg-travel-bg transition-colors"
+              className={`mt-1 block w-full rounded-md border px-3 py-2 text-travel-text placeholder-travel-text-muted focus:outline-none focus:ring-1 sm:text-sm bg-travel-bg transition-colors ${
+                errors.destination 
+                  ? "border-red-500 focus:border-red-500 focus:ring-red-500" 
+                  : "border-travel-border focus:border-travel-accent focus:ring-travel-accent"
+              }`}
             />
+            {errors.destination && <p className="mt-1 text-xs text-red-500 animate-pulse">{errors.destination.message}</p>}
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <label className="block text-sm font-medium text-travel-text">Start Date</label>
               <input
-                {...register("startDate", { required: true })}
+                {...register("startDate", { required: "Start date is required" })}
                 type="date"
-                className="mt-1 block w-full rounded-md border border-travel-border px-3 py-2 text-travel-text focus:border-travel-accent focus:outline-none focus:ring-1 focus:ring-travel-accent sm:text-sm bg-travel-bg transition-colors"
+                className={`mt-1 block w-full rounded-md border px-3 py-2 text-travel-text focus:outline-none focus:ring-1 sm:text-sm bg-travel-bg transition-colors ${
+                    errors.startDate
+                      ? "border-red-500 focus:border-red-500 focus:ring-red-500" 
+                      : "border-travel-border focus:border-travel-accent focus:ring-travel-accent"
+                  }`}
               />
+              {errors.startDate && <p className="mt-1 text-xs text-red-500 animate-pulse">{errors.startDate.message}</p>}
             </div>
             <div className="flex-1">
               <label className="block text-sm font-medium text-travel-text">End Date</label>
               <input
-                {...register("endDate", { required: true })}
+                {...register("endDate", { required: "End date is required" })}
                 type="date"
-                className="mt-1 block w-full rounded-md border border-travel-border px-3 py-2 text-travel-text focus:border-travel-accent focus:outline-none focus:ring-1 focus:ring-travel-accent sm:text-sm bg-travel-bg transition-colors"
+                className={`mt-1 block w-full rounded-md border px-3 py-2 text-travel-text focus:outline-none focus:ring-1 sm:text-sm bg-travel-bg transition-colors ${
+                    errors.endDate
+                      ? "border-red-500 focus:border-red-500 focus:ring-red-500" 
+                      : "border-travel-border focus:border-travel-accent focus:ring-travel-accent"
+                  }`}
               />
+              {errors.endDate && <p className="mt-1 text-xs text-red-500 animate-pulse">{errors.endDate.message}</p>}
             </div>
           </div>
 
@@ -88,32 +109,55 @@ export default function CreateTripPage() {
             <label className="block text-sm font-medium text-travel-text">Estimated Budget (₹)</label>
             <input
               {...register("budget", { 
-                required: true,
-                pattern: /^[0-9]+$/,
+                required: "Budget is required",
+                pattern: {
+                  value: /^[0-9]+$/,
+                  message: "Please use only numeric values (0-9)"
+                }
               })}
               type="text"
               inputMode="numeric"
               placeholder="15000"
-              className="mt-1 block w-full rounded-md border border-travel-border px-3 py-2 text-travel-text placeholder-travel-text-muted focus:border-travel-accent focus:outline-none focus:ring-1 focus:ring-travel-accent sm:text-sm bg-travel-bg transition-colors"
+              className={`mt-1 block w-full rounded-md border px-3 py-2 text-travel-text placeholder-travel-text-muted focus:outline-none focus:ring-1 sm:text-sm bg-travel-bg transition-colors ${
+                errors.budget 
+                  ? "border-red-500 focus:border-red-500 focus:ring-red-500" 
+                  : "border-travel-border focus:border-travel-accent focus:ring-travel-accent"
+              }`}
             />
+            {errors.budget && (
+              <p className="mt-1 text-xs text-red-500 font-medium animate-pulse">
+                {errors.budget.message}
+              </p>
+            )}
           </div>
 
           {/* Description */}
           <div>
             <label className="block text-sm font-medium text-travel-text">Trip Description</label>
             <textarea
-              {...register("description", { required: true })}
+              {...register("description", { 
+                required: "Description is required",
+                minLength: {
+                  value: 10,
+                  message: "Description must be at least 10 characters"
+                }
+              })}
               rows={4}
               placeholder="What's the plan? Chilling, Trekking, Sightseeing?"
-              className="mt-1 block w-full rounded-md border border-travel-border px-3 py-2 text-travel-text placeholder-travel-text-muted focus:border-travel-accent focus:outline-none focus:ring-1 focus:ring-travel-accent sm:text-sm bg-travel-bg transition-colors"
+              className={`mt-1 block w-full rounded-md border px-3 py-2 text-travel-text placeholder-travel-text-muted focus:outline-none focus:ring-1 sm:text-sm bg-travel-bg transition-colors ${
+                errors.description 
+                  ? "border-red-500 focus:border-red-500 focus:ring-red-500" 
+                  : "border-travel-border focus:border-travel-accent focus:ring-travel-accent"
+              }`}
             />
+            {errors.description && <p className="mt-1 text-xs text-red-500 animate-pulse">{errors.description.message}</p>}
           </div>
 
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={isSubmitting}
-            className="w-full flex justify-center rounded-md bg-travel-accent px-4 py-3 text-sm font-bold cursor-pointer text-white shadow-sm hover:bg-travel-accent-hover focus:outline-none focus:ring-2 focus:ring-travel-accent focus:ring-offset-2 disabled:bg-travel-border disabled:cursor-not-allowed transition-colors"
+            disabled={isSubmitting || !isValid} 
+            className="w-full flex justify-center rounded-md bg-travel-accent px-4 py-3 text-sm font-bold cursor-pointer text-white shadow-sm hover:bg-travel-accent-hover focus:outline-none focus:ring-2 focus:ring-travel-accent focus:ring-offset-2 disabled:bg-travel-border disabled:cursor-not-allowed disabled:opacity-50 transition-all"
           >
             {isSubmitting ? "Posting..." : "Post Trip"}
           </button>
