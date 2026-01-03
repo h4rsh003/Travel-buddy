@@ -39,6 +39,15 @@ export default function TripDetailsPage() {
   const [hasRequested, setHasRequested] = useState(false);
   const [isAccepted, setIsAccepted] = useState(false);
 
+  const formatDate = (dateStr: string) => {
+  return new Date(dateStr).toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+
   // Fetch Trip Data (Public - uses standard axios)
   useEffect(() => {
     const fetchTrip = async () => {
@@ -172,7 +181,7 @@ export default function TripDetailsPage() {
                 <p className="text-travel-text font-bold text-lg">{trip.user.name}</p>
                 {isAccepted ? (
                     <div className="mt-1">
-                        <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded">ACCEPTED ✅</span>
+                        <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded">ACCEPTED</span>
                         <p className="text-travel-accent font-medium text-sm mt-1">
                             📧 {trip.user.email}
                         </p>
@@ -191,11 +200,11 @@ export default function TripDetailsPage() {
             </div>
             <div>
                 <p className="text-travel-text-muted text-xs uppercase font-bold tracking-wider">Start Date</p>
-                <p className="text-lg font-medium text-travel-text">{trip.startDate}</p>
+                <p className="text-lg font-medium text-travel-text">{formatDate(trip.startDate)}</p>
             </div>
             <div>
                 <p className="text-travel-text-muted text-xs uppercase font-bold tracking-wider">End Date</p>
-                <p className="text-lg font-medium text-travel-text">{trip.endDate}</p>
+                <p className="text-lg font-medium text-travel-text">{formatDate(trip.endDate)}</p>
             </div>
           </div>
 
@@ -225,7 +234,7 @@ export default function TripDetailsPage() {
                 </button>
              ) : (
                 <button onClick={handleJoinRequest} disabled={requesting} className="flex-1 bg-travel-accent text-white py-3 rounded-lg font-bold hover:bg-travel-accent-hover transition disabled:bg-travel-border shadow-md hover:shadow-lg transform active:scale-95 duration-200">
-                    {requesting ? "Sending..." : "Request to Join 🚀"}
+                    {requesting ? "Sending..." : "Request to Join"}
                 </button>
              )}
              
