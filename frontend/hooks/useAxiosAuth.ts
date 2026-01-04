@@ -11,8 +11,6 @@ const useAxiosAuth = () => {
     const requestIntercept = axiosAuth.interceptors.request.use(
       (config) => {
         if (!config.headers["Authorization"]) {
-          // 🟢 FIX: Removed @ts-ignore because types/next-auth.d.ts now handles the typing.
-          // We also check if the token exists to avoid "Bearer undefined"
           if (session?.user?.accessToken) {
             config.headers["Authorization"] = `Bearer ${session.user.accessToken}`;
           }
@@ -28,7 +26,11 @@ const useAxiosAuth = () => {
         const prevRequest = error?.config;
         if (error?.response?.status === 401 && !prevRequest?.sent) {
           prevRequest.sent = true;
-          await signOut({ callbackUrl: "/auth/login" });
+          if (window.location.pathname === "/") {
+            await signOut({ redirect: false });
+          } else {
+            await signOut({ callbackUrl: "/auth/login" });
+          }
           return Promise.reject(error);
         }
         return Promise.reject(error);
