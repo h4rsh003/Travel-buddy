@@ -87,7 +87,7 @@ export default function ProfilePage() {
         }
     };
 
-    if (status === "loading" || loading) return <p className="text-center mt-10 text-travel-text-muted">Loading Profile...</p>;
+    if (status === "loading" || loading) return <p className="min-h-screen flex justify-center items-center bg-travel-bg"><p className="text-travel-text-muted animate-pulse">Loading Profile...</p></p>;
 
     return (
         <div className="min-h-screen bg-travel-bg py-12 px-4 sm:px-6 lg:px-8">
