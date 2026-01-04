@@ -121,7 +121,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-travel-text-muted hover:text-travel-text focus:outline-none"
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer text-travel-text-muted hover:text-travel-text focus:outline-none"
                 >
                   {showPassword ? (
                     <FiEyeOff className="h-5 w-5" />
@@ -148,7 +148,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="group relative flex w-full justify-center rounded-lg border border-transparent bg-travel-accent px-4 py-3 text-sm font-bold text-white shadow-md hover:bg-travel-accent-hover hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-travel-accent focus:ring-offset-2 disabled:bg-travel-border disabled:cursor-not-allowed transition-all transform active:scale-95"
+            className="group relative flex w-full justify-center cursor-pointer rounded-lg border border-transparent bg-travel-accent px-4 py-3 text-sm font-bold text-white shadow-md hover:bg-travel-accent-hover hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-travel-accent focus:ring-offset-2 disabled:bg-travel-border disabled:cursor-not-allowed transition-all transform active:scale-95"
           >
             {isSubmitting ? (
                 <span className="flex items-center gap-2">

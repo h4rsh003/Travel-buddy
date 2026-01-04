@@ -280,13 +280,13 @@ export default function DashboardPage() {
                                                                         <>
                                                                             <button
                                                                                 onClick={() => handleAction(req.id, "accepted")}
-                                                                                className="px-3 py-1 bg-green-600 text-white text-xs font-medium rounded hover:bg-green-700 transition"
+                                                                                className="px-3 py-1 bg-green-600 text-white text-xs font-medium rounded cursor-pointer hover:bg-green-700 transition"
                                                                             >
                                                                                 Accept
                                                                             </button>
                                                                             <button
                                                                                 onClick={() => handleAction(req.id, "rejected")}
-                                                                                className="px-3 py-1 bg-white border border-red-200 text-red-600 text-xs font-medium rounded hover:bg-red-50 transition"
+                                                                                className="px-3 py-1 bg-white border border-red-200 text-red-600 cursor-pointer text-xs font-medium rounded hover:bg-red-50 transition"
                                                                             >
                                                                                 Reject
                                                                             </button>
