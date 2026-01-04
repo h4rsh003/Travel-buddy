@@ -187,7 +187,7 @@ export default function Home() {
         )}
       </div>
 
-      {/* HOW IT WORKS SECTION (Moved to Bottom) */}
+      {/* HOW IT WORKS SECTION  */}
       <div className="border-t border-travel-border bg-travel-bg/50">
         <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
 
@@ -199,8 +199,8 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Step 1 */}
-            <div className="flex items-center gap-4 p-4 rounded-xl hover:bg-travel-card transition-colors group cursor-default">
-              <div className="h-12 w-12 shrink-0 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+            <div className="flex items-center gap-4 p-4 rounded-xl ">
+              <div className="h-12 w-12 shrink-0 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xl">
                 <FiPlus />
               </div>
               <div>
@@ -209,8 +209,8 @@ export default function Home() {
               </div>
             </div>
             {/* Step 2 */}
-            <div className="flex items-center gap-4 p-4 rounded-xl hover:bg-travel-card transition-colors group cursor-default">
-              <div className="h-12 w-12 shrink-0 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+            <div className="flex items-center gap-4 p-4 rounded-xl">
+              <div className="h-12 w-12 shrink-0 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-xl ">
                 <FiSearch />
               </div>
               <div>
@@ -219,8 +219,8 @@ export default function Home() {
               </div>
             </div>
             {/* Step 3 */}
-            <div className="flex items-center gap-4 p-4 rounded-xl hover:bg-travel-card transition-colors group cursor-default">
-              <div className="h-12 w-12 shrink-0 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+            <div className="flex items-center gap-4 p-4 rounded-xl ">
+              <div className="h-12 w-12 shrink-0 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xl ">
                 <FiUsers />
               </div>
               <div>
