@@ -18,17 +18,21 @@ app.use("/api/trips", tripRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
 app.get("/", (req, res) => {
-  res.send("Travel Buddy Backend is Running! 🚀");
+  res.send("Travel Buddy Backend is Running!");
+});
+// Health Check Route
+app.get("/ping", (req, res) => {
+  res.status(200).send("Pong");
 });
 
 // Initialize Database
 AppDataSource.initialize()
   .then(() => {
-    console.log("✅ Database Connected Successfully to Neon.tech!");
+    console.log("Database Connected Successfully to Neon.tech!");
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
   })
   .catch((error) => {
-    console.error("❌ Database Connection Error:", error);
+    console.error("Database Connection Error:", error);
   });
