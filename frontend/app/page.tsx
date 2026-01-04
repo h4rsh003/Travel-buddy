@@ -1,44 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { useEffect } from "react";
 import Link from "next/link";
 import { FiMapPin, FiCalendar, FiSearch, FiPlus, FiUsers } from "react-icons/fi";
-
-type Trip = {
-  id: number;
-  destination: string;
-  startDate: string;
-  endDate: string;
-  budget: number;
-  description: string;
-  user: {
-    name: string;
-    email: string;
-  };
-};
+import { useTripStore } from "@/stores/tripStore";
 
 export default function Home() {
-  const [trips, setTrips] = useState<Trip[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { 
+    loading, 
+    fetchTrips, 
+    searchQuery, 
+    setSearchQuery, 
+    getFilteredTrips 
+  } = useTripStore();
 
-  // Search State
-  const [searchQuery, setSearchQuery] = useState("");
-
-  // Fetch Trips on Load
   useEffect(() => {
-    const fetchTrips = async () => {
-      try {
-        const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/trips`);
-        setTrips(res.data);
-      } catch (error) {
-        console.error("Error fetching trips:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchTrips();
-  }, []);
+  }, [fetchTrips]);
+
+  // Get the filtered list from the store
+  const filteredTrips = getFilteredTrips();
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString("en-IN", {
@@ -47,11 +28,6 @@ export default function Home() {
       year: "numeric",
     });
   };
-  // Filter Logic (Real-time)
-  const filteredTrips = trips.filter((trip) =>
-    trip.destination.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    trip.description.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   return (
     <main className="min-h-screen bg-travel-bg">
@@ -79,7 +55,7 @@ export default function Home() {
               type="text"
               placeholder="Search destination (e.g. Goa, Paris)..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => setSearchQuery(e.target.value)} // 🟢 Updates global store
               className="flex-1 bg-transparent border-none focus:ring-0 text-travel-text placeholder:text-travel-text-muted px-4 py-3 outline-none w-full min-w-0"
             />
             <button className="hidden cursor-pointer sm:block bg-travel-text text-travel-bg px-8 py-3 rounded-full font-bold hover:opacity-90 transition shadow-md whitespace-nowrap">
@@ -186,7 +162,7 @@ export default function Home() {
         )}
       </div>
 
-      {/* HOW IT WORKS SECTION  */}
+      {/* HOW IT WORKS SECTION */}
       <div className="border-t border-travel-border bg-travel-bg/50">
         <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
 
@@ -198,8 +174,8 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Step 1 */}
-            <div className="flex items-center gap-4 p-4 rounded-xl ">
-              <div className="h-12 w-12 shrink-0 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xl">
+            <div className="flex items-center gap-4 p-4 rounded-xl hover:bg-travel-card transition-colors group cursor-default">
+              <div className="h-12 w-12 shrink-0 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
                 <FiPlus />
               </div>
               <div>
@@ -208,8 +184,8 @@ export default function Home() {
               </div>
             </div>
             {/* Step 2 */}
-            <div className="flex items-center gap-4 p-4 rounded-xl">
-              <div className="h-12 w-12 shrink-0 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-xl ">
+            <div className="flex items-center gap-4 p-4 rounded-xl hover:bg-travel-card transition-colors group cursor-default">
+              <div className="h-12 w-12 shrink-0 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
                 <FiSearch />
               </div>
               <div>
@@ -218,8 +194,8 @@ export default function Home() {
               </div>
             </div>
             {/* Step 3 */}
-            <div className="flex items-center gap-4 p-4 rounded-xl ">
-              <div className="h-12 w-12 shrink-0 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xl ">
+            <div className="flex items-center gap-4 p-4 rounded-xl hover:bg-travel-card transition-colors group cursor-default">
+              <div className="h-12 w-12 shrink-0 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
                 <FiUsers />
               </div>
               <div>
