@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import useAxiosAuth from "@/hooks/useAxiosAuth";
 import toast from "react-hot-toast";
+import { FiActivity, FiClock, FiTrash2 } from "react-icons/fi";
 
 type TripDetails = {
   id: number;
@@ -161,6 +162,19 @@ export default function TripDetailsPage() {
 
   const isOwner = Number(session?.user?.id) === trip.user.id;
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const tripStartDate = new Date(trip.startDate);
+  tripStartDate.setHours(0, 0, 0, 0);
+
+  const tripEndDate = new Date(trip.endDate);
+  tripEndDate.setHours(0, 0, 0, 0);
+
+  const isTripCompleted = today > tripEndDate;
+  const isTripStarted = today >= tripStartDate && !isTripCompleted;
+
+
   return (
     <div className="min-h-screen bg-travel-bg py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto bg-travel-card rounded-xl shadow-lg overflow-hidden border border-travel-border">
@@ -184,7 +198,7 @@ export default function TripDetailsPage() {
                 <div className="mt-1">
                   <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded">ACCEPTED</span>
                   <p className="text-travel-accent font-medium text-sm mt-1">
-                    📧 {trip.user.email}
+                    {trip.user.email}
                   </p>
                 </div>
               ) : (
@@ -225,22 +239,36 @@ export default function TripDetailsPage() {
                   You Own This Trip
                 </button>
 
-                <button onClick={handleDeleteTrip} className="px-6 py-3 bg-red-50 text-red-600 border border-red-200 rounded-lg font-bold cursor-pointer hover:bg-red-100 transition">
-                  Delete Trip 🗑️
+                <button onClick={handleDeleteTrip} className="flex items-center gap-2 px-6 py-3 bg-red-50 text-red-600 
+                  border border-red-200 rounded-lg font-bold cursor-pointer hover:bg-red-100 transition">
+                  Delete Trip <FiTrash2 />
                 </button>
               </>
+            ) : isTripCompleted ? (
+              <div className="flex-1 bg-gray-100 text-gray-500 py-3 rounded-lg font-bold text-center
+                border border-gray-200 cursor-not-allowed flex items-center justify-center gap-2">
+                <FiClock /> Trip Completed
+              </div>
+            ) : isTripStarted ? (
+              <div className="flex-1 bg-blue-50 text-blue-600 py-3 rounded-lg font-bold text-center border border-blue-100
+                cursor-not-allowed flex items-center justify-center gap-2">
+                <FiActivity /> Trip Started
+              </div>
             ) : hasRequested ? (
-              <button onClick={handleCancelRequest} disabled={requesting} className="flex-1 bg-red-50 text-red-600 border border-red-200 py-3 cursor-pointer rounded-lg font-bold hover:bg-red-100 transition">
-                {requesting ? "Cancelling..." : "Cancel Request ❌"}
+              <button onClick={handleCancelRequest} disabled={requesting} className="flex-1 bg-red-50 text-red-600 border border-red-200
+                py-3 cursor-pointer rounded-lg font-bold hover:bg-red-100 transition">
+                {requesting ? "Cancelling..." : "Cancel Request"}
               </button>
             ) : (
-              <button onClick={handleJoinRequest} disabled={requesting} className="flex-1 bg-travel-accent text-white py-3 rounded-lg font-bold cursor-pointer hover:bg-travel-accent-hover transition disabled:bg-travel-border shadow-md hover:shadow-lg transform active:scale-95 duration-200">
+              <button onClick={handleJoinRequest} disabled={requesting} className="flex-1 bg-travel-accent text-white
+                py-3 rounded-lg font-bold cursor-pointer hover:bg-travel-accent-hover transition disabled:bg-travel-border shadow-md hover:shadow-lg transform active:scale-95 duration-200">
                 {requesting ? "Sending..." : "Request to Join"}
               </button>
             )}
 
             {!isOwner && (
-              <Link href="/" className="px-6 py-3 border border-travel-border rounded-lg text-travel-text font-medium hover:bg-travel-bg text-center transition">
+              <Link href="/" className="px-6 py-3 border border-travel-border rounded-lg text-travel-text
+                font-medium hover:bg-travel-bg text-center transition">
                 Back to Feed
               </Link>
             )}
