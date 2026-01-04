@@ -61,7 +61,6 @@ export default function Home() {
         {/* Gradient Top Line */}
         <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-travel-accent to-orange-500"></div>
 
-        {/* Adjusted padding (py-12) to make section shorter */}
         <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8 text-center md:text-left relative z-10">
           <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-4 text-travel-text leading-tight">
             Find your next <br className="hidden md:block" />
