@@ -2,16 +2,16 @@ import nodemailer from "nodemailer";
 
 export const sendEmail = async (to: string, otp: string) => {
   try {
-    // 🟢 UPDATE: Replaced 'service: gmail' with explicit host/port settings
-    // This fixes the ETIMEDOUT error on Render/Cloud hosting
+    // Sometimes explicit host/port fails where the service wrapper succeeds.
     const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true, // true for 465, false for other ports
+      service: "gmail",
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
+      tls: {
+        rejectUnauthorized: false 
+      }
     });
 
     await transporter.sendMail({
@@ -34,6 +34,6 @@ export const sendEmail = async (to: string, otp: string) => {
     
   } catch (error) {
     console.error("Email send error:", error);
-    throw error; // This ensures the frontend receives the error
+    throw error; 
   }
 };
