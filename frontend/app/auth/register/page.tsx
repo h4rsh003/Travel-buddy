@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import axios from "axios";
 import { useRouter } from "next/navigation"; 
-import { FiEye, FiEyeOff, FiCheck, FiArrowLeft, FiUser, FiMail, FiLock } from "react-icons/fi";
+import { FiEye, FiEyeOff, FiCheck, FiArrowLeft, FiUser, FiMail, FiLock, FiX } from "react-icons/fi"; 
 import { useState } from "react";
 import { toast } from "react-hot-toast"; 
 
@@ -26,8 +26,17 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
   const router = useRouter();
+  
+  // UI States
   const [showPassword, setShowPassword] = useState(false);
-  const [isPasswordFocused, setIsPasswordFocused] = useState(false); 
+  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
+  
+  const [step, setStep] = useState<"FORM" | "OTP">("FORM");
+  const [emailForVerification, setEmailForVerification] = useState("");
+  const [otp, setOtp] = useState("");
+  const [verifying, setVerifying] = useState(false);
+
+  const [registrationToken, setRegistrationToken] = useState("");
   
   const {
     register,
@@ -41,7 +50,6 @@ export default function RegisterPage() {
   });
 
   // Watch password for real-time checklist
-  // Replaced `watch` with `useWatch` to fix linter/compiler memoization error
   const passwordValue = useWatch({
     control,
     name: "password",
@@ -55,15 +63,20 @@ export default function RegisterPage() {
     { regex: /[^a-zA-Z0-9]/, text: "1 Symbol" },
   ];
 
-  // 2. Handle Registration
+  // 2. Handle Registration (Step 1)
   const onSubmit = async (data: RegisterFormValues) => {
-    const loadingToast = toast.loading("Creating account...");
+    const loadingToast = toast.loading("Sending OTP...");
     try {
-      await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/register`, data);
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/register`, data);
       
       toast.dismiss(loadingToast);
-      toast.success("Registration Successful! Please login.");
-      router.push("/auth/login");
+      toast.success("Code sent to your email!");
+      
+      // Save data for Step 2
+      setEmailForVerification(data.email);
+      setRegistrationToken(res.data.registrationToken); // Store the token
+      setStep("OTP"); 
+      
     } catch (error) {
       toast.dismiss(loadingToast);
       if (axios.isAxiosError(error) && error.response) {
@@ -73,6 +86,37 @@ export default function RegisterPage() {
          setError("root", { message: "Something went wrong. Is backend running?" });
          toast.error("Something went wrong.");
       }
+    }
+  };
+
+  // 3. Verify OTP (Step 2)
+  const onVerifyOtp = async () => {
+    if (otp.length !== 4) {
+        toast.error("Please enter the 4-digit code");
+        return;
+    }
+    setVerifying(true);
+    const loadingToast = toast.loading("Verifying code...");
+
+    try {
+        await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/verify-otp`, {
+            otp: otp,
+            registrationToken: registrationToken 
+        });
+
+        toast.dismiss(loadingToast);
+        toast.success("Verification Successful! Login to continue.");
+        router.push("/auth/login"); 
+    } catch (error) {
+        console.error(error);
+        toast.dismiss(loadingToast);
+        if (axios.isAxiosError(error) && error.response) {
+            toast.error(error.response.data.message);
+        } else {
+            toast.error("Invalid or Expired Code");
+        }
+    } finally {
+        setVerifying(false);
     }
   };
 
@@ -86,7 +130,7 @@ export default function RegisterPage() {
         </Link>
       </div>
 
-      <div className="w-full max-w-md space-y-8 rounded-2xl bg-travel-card p-10 shadow-xl border border-travel-border">
+      <div className="w-full max-w-md space-y-8 rounded-2xl bg-travel-card p-10 shadow-xl border border-travel-border relative">
         <div className="text-center">
           <h2 className="text-3xl font-bold tracking-tight text-travel-text">
             Create an Account
@@ -96,7 +140,7 @@ export default function RegisterPage() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className={`mt-8 space-y-6 ${step === "OTP" ? "opacity-20 pointer-events-none blur-sm" : ""}`}>
           {/* Show Backend Error */}
           {errors.root && (
             <div className="rounded-md bg-red-50 p-3 text-sm text-red-600 text-center border border-red-200">
@@ -168,7 +212,7 @@ export default function RegisterPage() {
                 </button>
               </div>
               
-              {/*Conditional Compact Password Checklist */}
+              {/* Conditional Compact Password Checklist */}
               {isPasswordFocused && (
                 <div className="mt-2 p-3 bg-travel-bg rounded-lg border border-travel-border text-xs leading-relaxed transition-all duration-300 animate-fade-in shadow-sm">
                   <span className="font-semibold text-travel-text mr-1">Must contain:</span>
@@ -198,12 +242,12 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="group relative flex w-full justify-center rounded-lg cursor-pointer border border-transparent bg-travel-accent px-4 py-3 text-sm font-bold text-white shadow-md hover:bg-travel-accent-hover hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-travel-accent focus:ring-offset-2 disabled:bg-travel-border disabled:cursor-not-allowed transition-all transform active:scale-95"
+            className="group relative flex w-full justify-center rounded-lg border border-transparent bg-travel-accent px-4 py-3 text-sm font-bold text-white shadow-md hover:bg-travel-accent-hover hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-travel-accent focus:ring-offset-2 disabled:bg-travel-border disabled:cursor-not-allowed transition-all transform active:scale-95"
           >
             {isSubmitting ? (
                  <span className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    Creating Account...
+                    Sending Code...
                 </span>
             ) : "Sign Up"}
           </button>
@@ -215,6 +259,53 @@ export default function RegisterPage() {
             Sign in
           </Link>
         </p>
+
+        {step === "OTP" && (
+            <div className="absolute inset-0 z-50 bg-travel-card/95 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center p-8 animate-fade-in">
+                <button 
+                    onClick={() => setStep("FORM")}
+                    className="absolute top-4 right-4 text-travel-text-muted hover:text-travel-text transition-colors"
+                    aria-label="Close modal" 
+                >
+                    <FiX size={24} />
+                </button>
+
+                <div className="bg-travel-accent/10 p-4 rounded-full mb-4 text-travel-accent animate-bounce">
+                    <FiMail size={32} />
+                </div>
+                
+                <h3 className="text-xl font-bold text-travel-text mb-2">Check your Email</h3>
+                <p className="text-sm text-travel-text-muted text-center mb-6 max-w-[80%]">
+                    We&apos;ve sent a 4-digit verification code to <br/>
+                    <span className="font-bold text-travel-text">{emailForVerification}</span>
+                </p>
+
+                {/* OTP Input Field */}
+                <input 
+                    type="text" 
+                    maxLength={4}
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ''))}
+                    className="w-40 text-center text-3xl font-bold tracking-[0.5em] py-3 rounded-lg border border-travel-border bg-travel-bg focus:border-travel-accent focus:ring-2 focus:ring-travel-accent outline-none mb-6 text-travel-text shadow-inner"
+                    placeholder="0000"
+                    autoFocus
+                />
+
+                <button
+                    onClick={onVerifyOtp}
+                    disabled={verifying || otp.length < 4}
+                    className="w-full bg-travel-accent text-white font-bold py-3 rounded-lg hover:bg-travel-accent-hover transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg active:scale-95"
+                >
+                    {verifying ? "Verifying..." : "Verify & Register"}
+                </button>
+                
+                <div className="text-xs text-travel-text-muted mt-6 text-center">
+                    Didn&apos;t receive code? <br/> 
+                    <button onClick={() => toast.success("Code resent!")} className="text-travel-accent hover:underline font-semibold mt-1">Resend Code</button>
+                </div>
+            </div>
+        )}
+
       </div>
     </div>
   );
