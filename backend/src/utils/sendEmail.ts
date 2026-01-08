@@ -1,22 +1,13 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const sendEmail = async (to: string, otp: string) => {
   try {
-    // Sometimes explicit host/port fails where the service wrapper succeeds.
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-      tls: {
-        rejectUnauthorized: false 
-      }
-    });
 
-    await transporter.sendMail({
-      from: '"Travel Buddy" <noreply@travelbuddy.com>',
-      to,
+    const { data, error } = await resend.emails.send({
+      from: "onboarding@resend.dev",
+      to: [to],
       subject: "Your Verification Code - Travel Buddy",
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;">
@@ -29,11 +20,16 @@ export const sendEmail = async (to: string, otp: string) => {
         </div>
       `,
     });
-    
-    console.log(`📧 Email sent to ${to}`);
+
+    if (error) {
+      console.error("Resend API Error:", error);
+      throw new Error(error.message);
+    }
+
+    console.log(`📧 Email sent to ${to} via Resend. ID: ${data?.id}`);
     
   } catch (error) {
-    console.error("Email send error:", error);
+    console.error("Email send failed:", error);
     throw error; 
   }
 };
