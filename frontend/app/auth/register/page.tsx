@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import axios from "axios";
 import { useRouter } from "next/navigation"; 
-import { FiEye, FiEyeOff, FiCheck, FiArrowLeft, FiUser, FiMail, FiLock, FiX } from "react-icons/fi"; // Added FiX
+import { FiEye, FiEyeOff, FiCheck, FiArrowLeft, FiUser, FiMail, FiLock, FiX } from "react-icons/fi"; 
 import { useState } from "react";
 import { toast } from "react-hot-toast"; 
 
@@ -33,7 +33,7 @@ export default function RegisterPage() {
 
   const [step, setStep] = useState<"FORM" | "OTP">("FORM");
   const [emailForVerification, setEmailForVerification] = useState("");
-  const [registrationToken, setRegistrationToken] = useState(""); // Stores temporary JWT
+  const [registrationToken, setRegistrationToken] = useState(""); 
   const [otp, setOtp] = useState("");
   const [verifying, setVerifying] = useState(false);
   
@@ -99,7 +99,7 @@ export default function RegisterPage() {
     try {
         await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/verify-otp`, {
             otp: otp,
-            registrationToken: registrationToken // Send token instead of raw email
+            registrationToken: registrationToken
         });
 
         toast.dismiss(loadingToast);
@@ -193,7 +193,7 @@ export default function RegisterPage() {
                   {...register("password")}
                   type={showPassword ? "text" : "password"}
                   onFocus={() => setIsPasswordFocused(true)} 
-                  onBlur={() => setIsPasswordFocused(false)} 
+                  // onBlur={() => setIsPasswordFocused(false)} 
                   className="block w-full pl-10 pr-10 rounded-lg border border-travel-border px-3 py-3 text-travel-text placeholder-travel-text-muted focus:border-travel-accent focus:outline-none focus:ring-1 focus:ring-travel-accent sm:text-sm bg-travel-bg transition-all"
                   placeholder="••••••••"
                 />
