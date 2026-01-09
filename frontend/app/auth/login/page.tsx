@@ -9,8 +9,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FiEye, FiEyeOff, FiMail, FiLock, FiArrowLeft } from "react-icons/fi";
 import { toast } from "react-hot-toast";
+import ForgotPasswordModal from "../forgotPassword/page";
 
-// Define Validation Schema
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(1, "Password is required"),
@@ -21,6 +21,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
   
   const {
     register,
@@ -62,7 +63,6 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-travel-bg px-4 relative">
       
-      {/* Back to Home Link */}
       <div className="absolute top-8 left-8">
         <Link href="/" className="flex items-center gap-2 text-travel-text-muted hover:text-travel-accent transition-colors text-sm font-medium">
             <FiArrowLeft /> Back to Home
@@ -70,7 +70,7 @@ export default function LoginPage() {
       </div>
 
       <div className="w-full max-w-md space-y-8 rounded-2xl bg-travel-card p-10 shadow-xl border border-travel-border transform transition-all">
-        {/* Header */}
+     
         <div className="text-center">
           <h2 className="text-3xl font-bold tracking-tight text-travel-text">
             Welcome Back!
@@ -84,18 +84,17 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-6">
           <div className="space-y-5">
             
-            {/* Email Input */}
             <div>
               <label className="block text-sm font-medium text-travel-text mb-1">Email</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <FiMail className="h-5 w-5 text-travel-text-muted" />
                 </div>
-                {/* 🛠️ FIX: Changed bg-white to bg-travel-bg */}
                 <input
                   {...register("email")}
                   type="email"
-                  className="block w-full pl-10 rounded-lg border border-travel-border px-3 py-3 text-travel-text placeholder-travel-text-muted focus:border-travel-accent focus:outline-none focus:ring-1 focus:ring-travel-accent sm:text-sm bg-travel-bg transition-all"
+                  className="block w-full pl-10 rounded-lg border border-travel-border px-3 py-3 text-travel-text 
+                    placeholder-travel-text-muted focus:border-travel-accent focus:outline-none focus:ring-1 focus:ring-travel-accent sm:text-sm bg-travel-bg transition-all"
                   placeholder="you@example.com"
                 />
               </div>
@@ -111,11 +110,11 @@ export default function LoginPage() {
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <FiLock className="h-5 w-5 text-travel-text-muted" />
                 </div>
-                {/* 🛠️ FIX: Changed bg-white to bg-travel-bg */}
                 <input
                   {...register("password")}
                   type={showPassword ? "text" : "password"}
-                  className="block w-full pl-10 pr-10 rounded-lg border border-travel-border px-3 py-3 text-travel-text placeholder-travel-text-muted focus:border-travel-accent focus:outline-none focus:ring-1 focus:ring-travel-accent sm:text-sm bg-travel-bg transition-all"
+                  className="block w-full pl-10 pr-10 rounded-lg border border-travel-border px-3 py-3 text-travel-text
+                   placeholder-travel-text-muted focus:border-travel-accent focus:outline-none focus:ring-1 focus:ring-travel-accent sm:text-sm bg-travel-bg transition-all"
                   placeholder="Enter your password"
                 />
                 <button
@@ -131,10 +130,21 @@ export default function LoginPage() {
                 </button>
               </div>
               
-              {errors.password && (
-                <p className="mt-1 text-xs text-red-500 font-medium">{errors.password.message}</p>
-              )}
-              
+              <div className="flex justify-between items-center mt-1">
+                 {errors.password ? (
+                    <p className="text-xs text-red-500 font-medium">{errors.password.message}</p>
+                 ) : <div></div>}
+                 
+                 {/* Forgot Password Link */}
+                 <button
+                    type="button"
+                    onClick={() => setIsForgotModalOpen(true)}
+                    className="text-xs font-semibold text-travel-accent hover:text-travel-accent-hover hover:underline transition-colors"
+                 >
+                    Forgot Password?
+                 </button>
+              </div>
+
               {/* Login Failed Error */}
               {errors.root && (
                 <div className="mt-3 p-3 rounded-lg bg-red-50 border border-red-100 text-red-600 text-sm text-center font-medium animate-pulse">
@@ -167,6 +177,12 @@ export default function LoginPage() {
           </Link>
         </p>
       </div>
+
+      {/* Forgot Password Modal */}
+      <ForgotPasswordModal
+        isOpen={isForgotModalOpen} 
+        onClose={() => setIsForgotModalOpen(false)} 
+      />
     </div>
   );
 }

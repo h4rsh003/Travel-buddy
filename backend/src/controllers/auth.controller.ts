@@ -144,4 +144,92 @@ export class AuthController {
       return res.status(500).json({ message: "Internal Server Error" });
     }
   }
+   // 4. FORGOT PASSWORD (Added this method)
+  static async forgotPassword(req: Request, res: Response): Promise<any> {
+    try {
+      const { email } = req.body;
+      const validation = AuthValidation.forgotPasswordSchema.safeParse({ email });
+
+      if (!validation.success) {
+        return res.status(400).json({ message: "Invalid email", errors: validation.error.format() });
+      }
+
+      const userRepository = AppDataSource.getRepository(User);
+      const user = await userRepository.findOne({ where: { email } });
+
+      // If user not found, we still return 200 for security (prevent email scraping)
+      if (!user) {
+        return res.status(200).json({ message: "If that email exists, we sent a reset link." });
+      }
+
+      // Generate Reset Token (Different secret or short expiry)
+      const resetToken = jwt.sign(
+        { userId: user.id, type: "RESET_PASSWORD" },
+        process.env.JWT_SECRET || "secret",
+        { expiresIn: "1h" }
+      );
+
+      // Create Link (Points to Frontend)
+      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+      const resetLink = `${frontendUrl}/auth/reset-password?token=${resetToken}`;
+
+      await sendEmail({
+        email: user.email,
+        subject: "Reset your Travel Buddy Password",
+        message: `Click here to reset your password: ${resetLink}`,
+        html: `
+          <h3>Reset Password</h3>
+          <p>Click the link below to reset your password. This link expires in 1 hour.</p>
+          <a href="${resetLink}" style="display:inline-block; padding:10px 20px; background:#007bff; color:white; text-decoration:none; border-radius:5px;">Reset Password</a>
+          <br/><br/>
+          <small>Or copy this link: ${resetLink}</small>
+        `
+      });
+
+      return res.status(200).json({ message: "If that email exists, we sent a reset link." });
+
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
+  // 5. RESET PASSWORD (Added this method)
+  static async resetPassword(req: Request, res: Response): Promise<any> {
+    try {
+      const { token, newPassword } = req.body;
+      const validation = AuthValidation.resetPasswordSchema.safeParse({ token, newPassword });
+
+      if (!validation.success) {
+        return res.status(400).json({ message: "Validation Error", errors: validation.error.format() });
+      }
+
+      // Verify Token
+      let decoded: any;
+      try {
+        decoded = jwt.verify(token, process.env.JWT_SECRET || "secret");
+        if (decoded.type !== "RESET_PASSWORD") {
+            throw new Error("Invalid token type");
+        }
+      } catch (err) {
+        return res.status(400).json({ message: "Invalid or expired link." });
+      }
+
+      const userRepository = AppDataSource.getRepository(User);
+      const user = await userRepository.findOne({ where: { id: decoded.userId } });
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found." });
+      }
+
+      // Update Password
+      user.password = await bcrypt.hash(newPassword, 10);
+      await userRepository.save(user);
+
+      return res.status(200).json({ message: "Password reset successful! Please login." });
+
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
 }
