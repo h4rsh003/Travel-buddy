@@ -19,7 +19,10 @@ export default function CreateTripPage() {
   const { status } = useSession();
   const router = useRouter();
   const axiosAuth = useAxiosAuth();
-  const today = new Date().toISOString().split("T")[0];
+
+  const dateObj = new Date();
+  dateObj.setDate(dateObj.getDate() + 1); 
+  const tomorrow = dateObj.toISOString().split("T")[0];
 
   const { register, handleSubmit, control, formState: { errors, isSubmitting, isValid } } =
     useForm<TripFormValues>({
@@ -84,7 +87,7 @@ export default function CreateTripPage() {
               <input
                 {...register("startDate", { required: "Start date is required" })}
                 type="date"
-                min={today}
+                min={tomorrow} // 2. Updated to use tomorrow
                 className={`mt-1 block w-full rounded-md border px-3 py-2 text-travel-text focus:outline-none focus:ring-1 sm:text-sm bg-travel-bg transition-colors ${errors.startDate
                     ? "border-red-500 focus:border-red-500 focus:ring-red-500"
                     : "border-travel-border focus:border-travel-accent focus:ring-travel-accent"
@@ -97,7 +100,7 @@ export default function CreateTripPage() {
               <input
                 {...register("endDate", { required: "End date is required" })}
                 type="date"
-                min={startDate || today}
+                min={startDate || tomorrow} // 3. Ensure end date can't be before start date (or tomorrow)
                 className={`mt-1 block w-full rounded-md border px-3 py-2 text-travel-text focus:outline-none focus:ring-1 sm:text-sm bg-travel-bg transition-colors ${errors.endDate
                     ? "border-red-500 focus:border-red-500 focus:ring-red-500"
                     : "border-travel-border focus:border-travel-accent focus:ring-travel-accent"
