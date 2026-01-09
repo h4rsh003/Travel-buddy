@@ -1,38 +1,52 @@
 import dotenv from "dotenv";
-import nodemailer from "nodemailer";
+import * as Brevo from "@getbrevo/brevo";
+
+dotenv.config();
 
 interface EmailOptions {
   email: string;
   subject: string;
-  message: string; 
-  html?: string; 
+  message: string;
+  html?: string;
 }
 
 export const sendEmail = async (options: EmailOptions) => {
-  dotenv.config();
-
-  if (!options.email) {
-    console.error("sendEmail Error: No recipient email provided.");
-    throw new Error("No recipient email provided (options.email is undefined).");
+  // 1. Validate Env Variables
+  if (!process.env.BREVO_API_KEY) {
+    console.error("Internal Error: BREVO_API_KEY is not defined.");
+    throw new Error("Email service not configured.");
   }
+  
+  // Use the variable SENDER_EMAIL from .env, or fallback to your specific email
+  const senderEmail = process.env.SENDER_EMAIL || "travel.budddyy@gmail.com";
 
-  // 1. Create a Transporter (The service that sends mail)
-  const transporter = nodemailer.createTransport({
-    service: "gmail", 
-    auth: {
-      user: process.env.SMTP_EMAIL, 
-      pass: process.env.SMTP_PASSWORD,
-    },
-  });
+  // 2. Configure Brevo Instance
+  const apiInstance = new Brevo.TransactionalEmailsApi();
+  
+  // Create authentication using the API key
+  apiInstance.setApiKey(Brevo.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
 
-  // 2. Define email options
-  const mailOptions = {
-    from: `"Travel Buddy" <${process.env.SMTP_EMAIL}>`, 
-    to: options.email, 
-    subject: options.subject, 
-    text: options.message, 
-    html: options.html, 
+  // 3. Prepare Email
+  const sendSmtpEmail = new Brevo.SendSmtpEmail();
+
+  sendSmtpEmail.subject = options.subject;
+  sendSmtpEmail.htmlContent = options.html || `<html><body><p>${options.message}</p></body></html>`;
+  
+  // Sender: Uses the authenticated email from your .env
+  sendSmtpEmail.sender = { 
+    name: "Travel Buddy", 
+    email: senderEmail 
   };
+  
+  // Recipient
+  sendSmtpEmail.to = [{ email: options.email }];
 
-  await transporter.sendMail(mailOptions);
+  // 4. Send via HTTP (Works on Render)
+  try {
+    const data = await apiInstance.sendTransacEmail(sendSmtpEmail);
+    console.log(`Email sent successfully to ${options.email}. Message ID: ${data.body.messageId}`);
+  } catch (error: any) {
+    console.error("Brevo Error:", error.response?.body || error.message);
+    throw new Error("Email could not be sent due to an external service error.");
+  }
 };
