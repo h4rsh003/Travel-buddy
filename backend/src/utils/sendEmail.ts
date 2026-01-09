@@ -1,3 +1,4 @@
+import dotenv from "dotenv";
 import nodemailer from "nodemailer";
 
 interface EmailOptions {
@@ -8,6 +9,8 @@ interface EmailOptions {
 }
 
 export const sendEmail = async (options: EmailOptions) => {
+  dotenv.config();
+
   if (!options.email) {
     console.error("sendEmail Error: No recipient email provided.");
     throw new Error("No recipient email provided (options.email is undefined).");
