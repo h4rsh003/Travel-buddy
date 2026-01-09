@@ -1,14 +1,13 @@
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import { AppDataSource } from "../config/data-source";
-import { User } from "../entities/User";
+import { User } from "../entities/User"; 
 import { AuthValidation } from "../validations/auth.validation";
 import jwt from "jsonwebtoken";
 import { sendEmail } from "../utils/sendEmail";
 
 export class AuthController {
 
-  // 1. REGISTER: Generate OTP & Token (DO NOT SAVE TO DB)
   static async register(req: Request, res: Response): Promise<any> {
     try {
       const { name, email, password } = req.body;
@@ -28,17 +27,18 @@ export class AuthController {
         return res.status(409).json({ message: "Email already exists. Please login." });
       }
 
-      // Hash password immediately
       const hashedPassword = await bcrypt.hash(password, 10);
       
       // Generate OTP
       const otp = Math.floor(1000 + Math.random() * 9000).toString();
 
-      // Send Email
-      await sendEmail(email, otp);
+      await sendEmail({
+        email: email,
+        subject: "Verify your Travel Buddy Account",
+        message: `Your verification code is: ${otp}. It expires in 10 minutes.`
+      });
 
       // Create a temporary JWT containing the signup data
-      // We DO NOT save to DB yet. We hand this data to the client securely.
       const registrationToken = jwt.sign(
         { name, email, password: hashedPassword, otp },
         process.env.JWT_SECRET || "secret",
@@ -47,7 +47,7 @@ export class AuthController {
 
       return res.status(200).json({
         message: "OTP sent! Check your email.",
-        registrationToken // Send this to frontend
+        registrationToken 
       });
 
     } catch (error) {
@@ -56,7 +56,6 @@ export class AuthController {
     }
   }
 
-  // 2. VERIFY OTP: Verify Token -> Save User to DB
   static async verifyOtp(req: Request, res: Response): Promise<any> {
     try {
       const { otp, registrationToken } = req.body; 
@@ -79,7 +78,6 @@ export class AuthController {
 
       const userRepository = AppDataSource.getRepository(User);
       
-      // Double check if user wasn't created in the meantime
       const existingUser = await userRepository.findOne({ where: { email: decoded.email } });
       if (existingUser) {
           return res.status(409).json({ message: "User already registered." });
@@ -88,7 +86,7 @@ export class AuthController {
       const user = new User();
       user.name = decoded.name;
       user.email = decoded.email;
-      user.password = decoded.password;
+      user.password = decoded.password; 
       user.isVerified = true;
 
       await userRepository.save(user);
@@ -101,17 +99,14 @@ export class AuthController {
     }
   }
 
-  // 3. LOGIN
+  // 3. LOGIN (Standard logic)
   static async login(req: Request, res: Response): Promise<any> {
     try {
       const { email, password } = req.body;
       const validation = AuthValidation.loginSchema.safeParse({ email, password });
 
       if (!validation.success) {
-        return res.status(400).json({
-          message: "Validation Error",
-          errors: validation.error.format()
-        });
+        return res.status(400).json({ message: "Validation Error", errors: validation.error.format() });
       }
 
       const userRepository = AppDataSource.getRepository(User);
@@ -121,6 +116,7 @@ export class AuthController {
         return res.status(401).json({ message: "Invalid email or password" });
       }
 
+      // Safety check (though new users are created as verified)
       if (user.isVerified === false) {
         return res.status(401).json({ message: "Please verify your email before logging in." });
       }

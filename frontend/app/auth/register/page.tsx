@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import axios from "axios";
 import { useRouter } from "next/navigation"; 
-import { FiEye, FiEyeOff, FiCheck, FiArrowLeft, FiUser, FiMail, FiLock, FiX } from "react-icons/fi"; 
+import { FiEye, FiEyeOff, FiCheck, FiArrowLeft, FiUser, FiMail, FiLock, FiX } from "react-icons/fi"; // Added FiX
 import { useState } from "react";
 import { toast } from "react-hot-toast"; 
 
@@ -29,14 +29,13 @@ export default function RegisterPage() {
   
   // UI States
   const [showPassword, setShowPassword] = useState(false);
-  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
-  
+  const [isPasswordFocused, setIsPasswordFocused] = useState(false); 
+
   const [step, setStep] = useState<"FORM" | "OTP">("FORM");
   const [emailForVerification, setEmailForVerification] = useState("");
+  const [registrationToken, setRegistrationToken] = useState(""); // Stores temporary JWT
   const [otp, setOtp] = useState("");
   const [verifying, setVerifying] = useState(false);
-
-  const [registrationToken, setRegistrationToken] = useState("");
   
   const {
     register,
@@ -63,18 +62,18 @@ export default function RegisterPage() {
     { regex: /[^a-zA-Z0-9]/, text: "1 Symbol" },
   ];
 
-  // 2. Handle Registration (Step 1)
   const onSubmit = async (data: RegisterFormValues) => {
     const loadingToast = toast.loading("Sending OTP...");
     try {
+      // Endpoint returns registrationToken if successful
       const res = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/register`, data);
       
       toast.dismiss(loadingToast);
       toast.success("Code sent to your email!");
       
-      // Save data for Step 2
+      // Save info for Step 2
       setEmailForVerification(data.email);
-      setRegistrationToken(res.data.registrationToken); // Store the token
+      setRegistrationToken(res.data.registrationToken);
       setStep("OTP"); 
       
     } catch (error) {
@@ -89,7 +88,6 @@ export default function RegisterPage() {
     }
   };
 
-  // 3. Verify OTP (Step 2)
   const onVerifyOtp = async () => {
     if (otp.length !== 4) {
         toast.error("Please enter the 4-digit code");
@@ -101,11 +99,11 @@ export default function RegisterPage() {
     try {
         await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/verify-otp`, {
             otp: otp,
-            registrationToken: registrationToken 
+            registrationToken: registrationToken // Send token instead of raw email
         });
 
         toast.dismiss(loadingToast);
-        toast.success("Verification Successful! Login to continue.");
+        toast.success("Verification Successful! Please login.");
         router.push("/auth/login"); 
     } catch (error) {
         console.error(error);
@@ -140,6 +138,7 @@ export default function RegisterPage() {
           </p>
         </div>
 
+        {/* Form opacity lowers when Modal is active */}
         <form onSubmit={handleSubmit(onSubmit)} className={`mt-8 space-y-6 ${step === "OTP" ? "opacity-20 pointer-events-none blur-sm" : ""}`}>
           {/* Show Backend Error */}
           {errors.root && (
@@ -202,7 +201,7 @@ export default function RegisterPage() {
                   type="button"
                   onMouseDown={(e) => e.preventDefault()} 
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer text-travel-text-muted hover:text-travel-text focus:outline-none"
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-travel-text-muted hover:text-travel-text focus:outline-none"
                 >
                   {showPassword ? (
                     <FiEyeOff className="h-5 w-5" aria-hidden="true" />
@@ -301,7 +300,8 @@ export default function RegisterPage() {
                 
                 <div className="text-xs text-travel-text-muted mt-6 text-center">
                     Didn&apos;t receive code? <br/> 
-                    <button onClick={() => toast.success("Code resent!")} className="text-travel-accent hover:underline font-semibold mt-1">Resend Code</button>
+                    {/* Note: Resend would typically require passing data to backend again in this stateless flow */}
+                    <button className="text-travel-accent hover:underline font-semibold mt-1 cursor-not-allowed opacity-50" title="Please register again to resend">Resend Code</button>
                 </div>
             </div>
         )}

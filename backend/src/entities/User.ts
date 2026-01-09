@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from "typeorm";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  OneToMany,
+} from "typeorm";
 import { Trip } from "./Trip";
 import { JoinRequest } from "./JoinRequest";
 
@@ -13,9 +19,9 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  @Column({ nullable: true }) 
+  @Column()
   password: string;
-  
+
   @Column({ nullable: true })
   bio: string;
 
@@ -31,16 +37,9 @@ export class User {
   @Column({ default: false })
   isVerified: boolean;
 
-  @Column({ nullable: true })
-  otp: string;
-
-  @Column({ nullable: true, type: 'timestamp' })
-  otpExpires: Date;
-
   @CreateDateColumn()
   created_at: Date;
 
-  // RELATIONSHIP: One User has Many Trips
   @OneToMany(() => Trip, (trip) => trip.user)
   trips: Trip[];
 
