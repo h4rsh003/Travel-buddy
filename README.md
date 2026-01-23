@@ -141,5 +141,3 @@ npm run dev # Starts on http://localhost:3000
 ---
 
 <p align="center">Built with 💙 using Next.js, Express & PostgreSQL</p>
-
-```
