@@ -170,7 +170,7 @@ export class AuthController {
       );
 
       // Create Link (Points to Frontend)
-      const frontendUrl = process.env.FRONTEND_URL;
+      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
       const resetLink = `${frontendUrl}/auth/reset-password?token=${resetToken}`;
 
       await sendEmail({
