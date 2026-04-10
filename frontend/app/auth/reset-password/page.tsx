@@ -19,35 +19,35 @@ function ResetPasswordForm() {
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
 
   const requirements = [
-    { regex: /.{6,}/, text: "6+ chars" }, 
+    { regex: /.{6,}/, text: "6+ chars" },
     { regex: /[A-Z]/, text: "1 Uppercase" },
     { regex: /[0-9]/, text: "1 Number" },
     { regex: /[^a-zA-Z0-9]/, text: "1 Symbol" },
   ];
 
   // Helper to handle blur with delay (prevents layout shift issues)
-//   const handlePasswordBlur = () => {
-//     setTimeout(() => {
-//         setIsPasswordFocused(false);
-//     }, 200);
-//   };
+  //   const handlePasswordBlur = () => {
+  //     setTimeout(() => {
+  //         setIsPasswordFocused(false);
+  //     }, 200);
+  //   };
 
   // If no token, show invalid state
   if (!token) {
     return (
-        <div className="text-center text-red-500 py-10">
-            <h3 className="text-lg font-bold">Invalid Link</h3>
-            <p>This password reset link is invalid or missing.</p>
-            <Link href="/auth/login" className="text-travel-accent hover:underline mt-4 block font-semibold">
-                Return to Login
-            </Link>
-        </div>
+      <div className="text-center text-red-500 py-10">
+        <h3 className="text-lg font-bold">Invalid Link</h3>
+        <p>This password reset link is invalid or missing.</p>
+        <Link href="/auth/login" className="text-travel-accent hover:underline mt-4 block font-semibold">
+          Return to Login
+        </Link>
+      </div>
     );
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // 1. Check if passwords match
     if (password !== confirmPassword) {
       toast.error("Passwords do not match!");
@@ -57,8 +57,8 @@ function ResetPasswordForm() {
     // 2. Validate against all Regex requirements
     const isStrongPassword = requirements.every((req) => req.regex.test(password));
     if (!isStrongPassword) {
-        toast.error("Password does not meet complexity requirements.");
-        return;
+      toast.error("Password does not meet complexity requirements.");
+      return;
     }
 
     setLoading(true);
@@ -108,26 +108,25 @@ function ResetPasswordForm() {
 
         {/* NEW: Password Checklist */}
         {isPasswordFocused && (
-            <div className="mt-2 p-3 bg-travel-bg rounded-lg border border-travel-border text-xs leading-relaxed transition-all duration-300 animate-fade-in shadow-sm">
-                <span className="font-semibold text-travel-text mr-1">Must contain:</span>
-                {requirements.map((req, index) => {
-                const isValid = req.regex.test(password);
-                return (
-                    <span
-                    key={index}
-                    className={`inline-block transition-colors duration-200 ${
-                        isValid ? "text-green-600 font-medium" : "text-travel-text-muted"
+          <div className="mt-2 p-3 bg-travel-bg rounded-lg border border-travel-border text-xs leading-relaxed transition-all duration-300 animate-fade-in shadow-sm">
+            <span className="font-semibold text-travel-text mr-1">Must contain:</span>
+            {requirements.map((req, index) => {
+              const isValid = req.regex.test(password);
+              return (
+                <span
+                  key={index}
+                  className={`inline-block transition-colors duration-200 ${isValid ? "text-green-600 font-medium" : "text-travel-text-muted"
                     }`}
-                    >
-                    {/* Checkmark */}
-                    {isValid && <FiCheck className="inline h-3 w-3 mr-0.5 -mt-0.5" />}
-                    {req.text}
-                    {/* Comma if not last */}
-                    {index < requirements.length - 1 && <span className="text-travel-text-muted mr-1">,</span>}
-                    </span>
-                );
-                })}
-            </div>
+                >
+                  {/* Checkmark */}
+                  {isValid && <FiCheck className="inline h-3 w-3 mr-0.5 -mt-0.5" />}
+                  {req.text}
+                  {/* Comma if not last */}
+                  {index < requirements.length - 1 && <span className="text-travel-text-muted mr-1">,</span>}
+                </span>
+              );
+            })}
+          </div>
         )}
       </div>
 
@@ -165,7 +164,7 @@ export default function ResetPasswordPage() {
           <h2 className="text-2xl font-bold text-travel-text">Set New Password</h2>
           <p className="text-travel-text-muted text-sm mt-2">Enter your new password below.</p>
         </div>
-        
+
         <Suspense fallback={<div className="text-center p-4 text-travel-text">Loading form...</div>}>
           <ResetPasswordForm />
         </Suspense>

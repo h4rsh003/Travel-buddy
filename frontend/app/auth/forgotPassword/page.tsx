@@ -34,10 +34,10 @@ export default function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordM
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-      
+
       <div className="relative w-full max-w-md bg-travel-card rounded-2xl shadow-2xl p-8 border border-travel-border">
-        
-        <button 
+
+        <button
           onClick={onClose}
           className="absolute top-4 right-4 text-travel-text-muted hover:text-travel-text transition-colors"
           aria-label="Close modal"
@@ -67,7 +67,7 @@ export default function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordM
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-travel-accent/10 mb-4">
               <FiMail className="h-6 w-6 text-travel-accent" />
             </div>
-            
+
             <h3 className="text-xl font-bold text-travel-text mb-2">Forgot Password?</h3>
             <p className="text-travel-text-muted text-sm mb-6">
               Enter your email address and we&apos;ll send you a link to reset your password.

@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import { AppDataSource } from "../config/data-source";
-import { User } from "../entities/User"; 
+import { User } from "../entities/User";
 import { AuthValidation } from "../validations/auth.validation";
 import jwt from "jsonwebtoken";
 import { sendEmail } from "../utils/sendEmail";
@@ -28,7 +28,7 @@ export class AuthController {
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
-      
+
       // Generate OTP
       const otp = Math.floor(1000 + Math.random() * 9000).toString();
 
@@ -47,7 +47,7 @@ export class AuthController {
 
       return res.status(200).json({
         message: "OTP sent! Check your email.",
-        registrationToken 
+        registrationToken
       });
 
     } catch (error) {
@@ -58,7 +58,7 @@ export class AuthController {
 
   static async verifyOtp(req: Request, res: Response): Promise<any> {
     try {
-      const { otp, registrationToken } = req.body; 
+      const { otp, registrationToken } = req.body;
 
       if (!registrationToken) {
         return res.status(400).json({ message: "Missing registration token" });
@@ -77,16 +77,16 @@ export class AuthController {
       }
 
       const userRepository = AppDataSource.getRepository(User);
-      
+
       const existingUser = await userRepository.findOne({ where: { email: decoded.email } });
       if (existingUser) {
-          return res.status(409).json({ message: "User already registered." });
+        return res.status(409).json({ message: "User already registered." });
       }
 
       const user = new User();
       user.name = decoded.name;
       user.email = decoded.email;
-      user.password = decoded.password; 
+      user.password = decoded.password;
       user.isVerified = true;
 
       await userRepository.save(user);
@@ -144,7 +144,7 @@ export class AuthController {
       return res.status(500).json({ message: "Internal Server Error" });
     }
   }
-   // 4. FORGOT PASSWORD (Added this method)
+  // 4. FORGOT PASSWORD (Added this method)
   static async forgotPassword(req: Request, res: Response): Promise<any> {
     try {
       const { email } = req.body;
@@ -170,7 +170,7 @@ export class AuthController {
       );
 
       // Create Link (Points to Frontend)
-      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+      const frontendUrl = process.env.FRONTEND_URL;
       const resetLink = `${frontendUrl}/auth/reset-password?token=${resetToken}`;
 
       await sendEmail({
@@ -208,7 +208,7 @@ export class AuthController {
       try {
         decoded = jwt.verify(token, process.env.JWT_SECRET || "secret");
         if (decoded.type !== "RESET_PASSWORD") {
-            throw new Error("Invalid token type");
+          throw new Error("Invalid token type");
         }
       } catch (err) {
         return res.status(400).json({ message: "Invalid or expired link." });
