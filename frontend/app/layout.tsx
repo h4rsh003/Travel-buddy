@@ -4,7 +4,7 @@ import "./globals.css";
 import { Providers } from "@/components/Providers";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Toaster } from "react-hot-toast"; // 👈 Import Toaster
+import { Toaster } from "react-hot-toast";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,16 +24,16 @@ export default function RootLayout({
         <Providers>
           <div className="flex flex-col min-h-screen">
             <Navbar />
-            
+
             <main className="grow">
               {children}
             </main>
-            
+
             <Footer />
           </div>
           {/* Global Toaster Configuration */}
-          <Toaster 
-            position="bottom-right" 
+          <Toaster
+            position="bottom-right"
             toastOptions={{
               style: {
                 background: '#333',

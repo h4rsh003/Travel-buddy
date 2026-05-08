@@ -7,11 +7,17 @@ export class Trip {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  destination: string;
+  @Column({ type: "jsonb" })
+  destination: {
+    name: string;
+    country: string;
+    formattedAddress: string;
+    lat: number;
+    lon: number;
+  };
 
   @Column()
-  startDate: string; // Storing as YYYY-MM-DD string is easiest for now
+  startDate: string;
 
   @Column()
   endDate: string;
@@ -24,12 +30,11 @@ export class Trip {
 
   // 🔗 RELATIONSHIP: Many Trips belong to One User
   @ManyToOne(() => User, (user) => user.trips)
-  @JoinColumn({ name: "userId" }) // This creates a "userId" column in the database
+  @JoinColumn({ name: "userId" })
   user: User;
 
   @Column()
-  userId: number; // We explicitly add this so we can access trip.userId easily
-
+  userId: number;
   @CreateDateColumn()
   created_at: Date;
 

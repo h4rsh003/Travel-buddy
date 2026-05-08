@@ -11,7 +11,13 @@ import { FiActivity, FiClock, FiTrash2 } from "react-icons/fi";
 
 type TripDetails = {
   id: number;
-  destination: string;
+  destination: {
+    name: string;
+    country: string;
+    formattedAddress?: string;
+    lat: number;
+    lon: number;
+  };
   startDate: string;
   endDate: string;
   budget: number;
@@ -180,10 +186,15 @@ export default function TripDetailsPage() {
       <div className="max-w-3xl mx-auto bg-travel-card rounded-xl shadow-lg overflow-hidden border border-travel-border">
 
         {/* Header Image - Uses travel-accent gradient */}
-        <div className="h-56 bg-linear-to-r from-travel-accent to-travel-accent-hover flex items-center justify-center">
+        <div className="h-56 bg-linear-to-r from-travel-accent to-travel-accent-hover flex flex-col items-center justify-center">
           <h1 className="text-4xl md:text-5xl font-bold text-white tracking-wide shadow-sm">
-            {trip.destination}
+            {trip.destination?.name}
           </h1>
+          {trip.destination?.country && (
+            <p className="text-white/80 text-lg mt-2 font-medium tracking-wider">
+              {trip.destination.country}
+            </p>
+          )}
         </div>
 
         <div className="p-8">

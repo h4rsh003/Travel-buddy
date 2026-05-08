@@ -17,6 +17,7 @@ export interface GeoapifySuggestion {
     city?: string;
     name?: string;
     state?: string;
+    address_line1?: string;
     country: string;
     formatted: string;
     lat: number;
@@ -74,15 +75,18 @@ export default function LocationInput({ onLocationSelect, error, placeholder }: 
     // 3. Handle user clicking a city
     const handleSelect = (item: GeoapifySuggestion) => {
         skipSearch.current = true;
+
+        const finalName = item.name || item.address_line1 || item.city || item.state || item.country || "";
+
         const selectedData: LocationData = {
-            name: item.city || item.state || item.country || item.name || "",
+            name: finalName,
             country: item.country,
             formattedAddress: item.formatted,
             lat: item.lat,
             lon: item.lon,
         };
 
-        setInputValue(selectedData.name);
+        setInputValue(finalName);
         setIsOpen(false);
         onLocationSelect(selectedData);
     };
@@ -93,7 +97,7 @@ export default function LocationInput({ onLocationSelect, error, placeholder }: 
         setTimeout(() => {
             setIsOpen(false);
             const exactMatch = suggestions.find(
-                (s) => (s.city || s.state || s.country || s.name) === inputValue
+                (s) => (s.name || s.address_line1 || s.city || s.state || s.country) === inputValue
             );
             if (!exactMatch) {
                 setInputValue("");
@@ -133,7 +137,7 @@ export default function LocationInput({ onLocationSelect, error, placeholder }: 
                         >
                             {/* Show the primary name (City, State, or Country) */}
                             <div className="font-medium">
-                                {item.name || item.city || item.state || item.country}
+                                {item.name || item.address_line1 || item.city || item.state || item.country}
                             </div>
                             <div className="text-xs text-travel-text-muted">
                                 {item.city ? `${item.city}, ` : ""}{item.country}

@@ -5,18 +5,22 @@ import { User } from "../entities/User";
 import { TripValidation } from "../validations/trip.validation";
 
 export class TripController {
-  
+
   // 1. Create Trip
   static async createTrip(req: Request, res: Response): Promise<any> {
     try {
       const { userId } = req.body.user; // From Middleware
       const { destination, startDate, endDate, budget, description } = req.body;
 
+      if (!destination || typeof destination !== 'object' || !destination.name || !destination.lat) {
+        return res.status(400).json({ message: "Invalid destination format. Please select a valid location from the dropdown." });
+      }
+
       // Validate Input
-      const validation = TripValidation.createTrip.safeParse({ 
-        destination, startDate, endDate, budget, description 
+      const validation = TripValidation.createTrip.safeParse({
+        destination, startDate, endDate, budget, description
       });
-      
+
       if (!validation.success) {
         return res.status(400).json({ errors: validation.error.format() });
       }
@@ -35,7 +39,7 @@ export class TripController {
       trip.endDate = endDate;
       trip.budget = budget;
       trip.description = description;
-      trip.user = user; 
+      trip.user = user;
 
       await tripRepository.save(trip);
 
@@ -53,15 +57,15 @@ export class TripController {
       const tripRepository = AppDataSource.getRepository(Trip);
 
       const trips = await tripRepository.find({
-        order: { created_at: "DESC" }, 
-        relations: ["user"], 
+        order: { created_at: "DESC" },
+        relations: ["user"],
         select: {
-            user: {
-                id: true,
-                name: true,
-                email: true,
-                profile_image: true
-            }
+          user: {
+            id: true,
+            name: true,
+            email: true,
+            profile_image: true
+          }
         }
       });
 
@@ -75,26 +79,26 @@ export class TripController {
   // 3. Get Single Trip by ID (Updated for Contact Reveal)
   static async getTripById(req: Request, res: Response): Promise<any> {
     try {
-      const { id } = req.params; 
+      const { id } = req.params;
       const tripRepository = AppDataSource.getRepository(Trip);
 
       const trip = await tripRepository.findOne({
         where: { id: Number(id) },
         // 👇 ADDED "joinRequests" so we can check if current user is accepted
-        relations: ["user", "joinRequests"], 
+        relations: ["user", "joinRequests"],
         select: {
-            user: {
-                id: true,
-                name: true,
-                email: true, // Needed for contact reveal
-                profile_image: true,
-                bio: true 
-            },
-            // 👇 Select minimal info to check status
-            joinRequests: {
-                userId: true,
-                status: true
-            }
+          user: {
+            id: true,
+            name: true,
+            email: true, // Needed for contact reveal
+            profile_image: true,
+            bio: true
+          },
+          // 👇 Select minimal info to check status
+          joinRequests: {
+            userId: true,
+            status: true
+          }
         }
       });
 
@@ -112,7 +116,7 @@ export class TripController {
   // 4. Get Logged-In User's Trips (Fixed Errors)
   static async getMyTrips(req: Request, res: Response): Promise<any> {
     try {
-      const { userId } = req.body.user; 
+      const { userId } = req.body.user;
 
       const tripRepository = AppDataSource.getRepository(Trip);
 
@@ -120,18 +124,18 @@ export class TripController {
       const trips = await tripRepository.find({
         where: { userId: userId }, // 👈 Correct filter
         order: { created_at: "DESC" },
-        relations: ["joinRequests", "joinRequests.user"], 
+        relations: ["joinRequests", "joinRequests.user"],
         select: {
-            joinRequests: {
-                id: true,
-                status: true,
-                user: {
-                    id: true,
-                    name: true,
-                    email: true,
-                    profile_image: true
-                }
+          joinRequests: {
+            id: true,
+            status: true,
+            user: {
+              id: true,
+              name: true,
+              email: true,
+              profile_image: true
             }
+          }
         }
       });
 
@@ -149,7 +153,7 @@ export class TripController {
       const { userId } = req.body.user; // Me
 
       const tripRepository = AppDataSource.getRepository(Trip);
-      
+
       const trip = await tripRepository.findOne({ where: { id: Number(id) } });
 
       if (!trip) return res.status(404).json({ message: "Trip not found" });

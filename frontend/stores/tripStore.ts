@@ -3,7 +3,13 @@ import axios from 'axios';
 
 type Trip = {
   id: number;
-  destination: string;
+  destination: {
+    name: string;
+    country: string;
+    formattedAddress?: string;
+    lat: number;
+    lon: number;
+  };
   startDate: string;
   endDate: string;
   budget: number;
@@ -18,12 +24,12 @@ interface TripState {
   loading: boolean;
   searchQuery: string;
   filter: FilterType;
-  
+
   // Actions
   setSearchQuery: (query: string) => void;
   setFilter: (filter: FilterType) => void;
   fetchTrips: () => Promise<void>;
-  
+
   // Getters (Selectors can be derived in component, but helper functions are nice)
   getFilteredTrips: () => Trip[];
 }
@@ -38,7 +44,7 @@ export const useTripStore = create<TripState>((set, get) => ({
   setFilter: (filter: FilterType) => set({ filter }),
 
   fetchTrips: async () => {
-    if (get().trips.length > 0) return; 
+    if (get().trips.length > 0) return;
 
     set({ loading: true });
     try {
@@ -52,14 +58,14 @@ export const useTripStore = create<TripState>((set, get) => ({
 
   getFilteredTrips: () => {
     const { trips, searchQuery, filter } = get();
-    
+
     const getTripStatus = (start: string, end: string) => {
       const today = new Date();
-      today.setHours(0,0,0,0);
+      today.setHours(0, 0, 0, 0);
       const startDate = new Date(start);
-      startDate.setHours(0,0,0,0);
+      startDate.setHours(0, 0, 0, 0);
       const endDate = new Date(end);
-      endDate.setHours(0,0,0,0);
+      endDate.setHours(0, 0, 0, 0);
 
       if (endDate < today) return 'COMPLETED';
       if (startDate <= today && endDate >= today) return 'STARTED';
@@ -67,10 +73,9 @@ export const useTripStore = create<TripState>((set, get) => ({
     };
 
     return trips.filter((trip: Trip) => {
-      const matchesSearch = 
-        trip.destination.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      const matchesSearch =
+        trip.destination?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         trip.description.toLowerCase().includes(searchQuery.toLowerCase());
-      
       if (!matchesSearch) return false;
       if (filter === 'ALL') return true;
       return getTripStatus(trip.startDate, trip.endDate) === filter;
