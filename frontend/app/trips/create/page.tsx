@@ -6,9 +6,9 @@ import { useForm, useWatch } from "react-hook-form";
 import useAxiosAuth from "@/hooks/useAxiosAuth";
 import { useEffect } from "react";
 import toast from "react-hot-toast";
-
+import LocationInput, { LocationData } from "@/components/LocationInput";
 type TripFormValues = {
-  destination: string;
+  destination: LocationData | null;
   startDate: string;
   endDate: string;
   budget: number;
@@ -21,10 +21,10 @@ export default function CreateTripPage() {
   const axiosAuth = useAxiosAuth();
 
   const dateObj = new Date();
-  dateObj.setDate(dateObj.getDate() + 1); 
+  dateObj.setDate(dateObj.getDate() + 1);
   const tomorrow = dateObj.toISOString().split("T")[0];
 
-  const { register, handleSubmit, control, formState: { errors, isSubmitting, isValid } } =
+  const { register, handleSubmit, setValue, control, formState: { errors, isSubmitting, isValid } } =
     useForm<TripFormValues>({
       mode: "onChange"
     });
@@ -43,6 +43,7 @@ export default function CreateTripPage() {
   }, [status, router]);
 
   const onSubmit = async (data: TripFormValues) => {
+    console.log("READY TO SEND TO BACKEND:", data);
     try {
       await axiosAuth.post("/api/trips", {
         ...data,
@@ -69,16 +70,27 @@ export default function CreateTripPage() {
           {/* Destination */}
           <div>
             <label className="block text-sm font-medium text-travel-text">Destination</label>
-            <input
-              {...register("destination", { required: "Destination is required" })}
-              type="text"
+
+            <LocationInput
               placeholder="e.g. Goa, Paris, Manali"
-              className={`mt-1 block w-full rounded-md border px-3 py-2 text-travel-text placeholder-travel-text-muted focus:outline-none focus:ring-1 sm:text-sm bg-travel-bg transition-colors ${errors.destination
-                  ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                  : "border-travel-border focus:border-travel-accent focus:ring-travel-accent"
-                }`}
+              error={errors.destination?.message}
+              onLocationSelect={(locationData) => {
+                // Manually set the value in React Hook Form
+                setValue("destination", locationData, {
+                  shouldValidate: true // This instantly clears the error message if they select a valid city
+                });
+              }}
             />
-            {errors.destination && <p className="mt-1 text-xs text-red-500 animate-pulse">{errors.destination.message}</p>}
+
+            {/* Hidden input to register the field with React Hook Form rules */}
+            <input
+              type="hidden"
+              {...register("destination", { required: "Please select a valid destination from the dropdown" })}
+            />
+
+            {errors.destination && (
+              <p className="mt-1 text-xs text-red-500 animate-pulse">{errors.destination.message}</p>
+            )}
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4">
@@ -89,8 +101,8 @@ export default function CreateTripPage() {
                 type="date"
                 min={tomorrow} // 2. Updated to use tomorrow
                 className={`mt-1 block w-full rounded-md border px-3 py-2 text-travel-text focus:outline-none focus:ring-1 sm:text-sm bg-travel-bg transition-colors ${errors.startDate
-                    ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                    : "border-travel-border focus:border-travel-accent focus:ring-travel-accent"
+                  ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                  : "border-travel-border focus:border-travel-accent focus:ring-travel-accent"
                   }`}
               />
               {errors.startDate && <p className="mt-1 text-xs text-red-500 animate-pulse">{errors.startDate.message}</p>}
@@ -102,8 +114,8 @@ export default function CreateTripPage() {
                 type="date"
                 min={startDate || tomorrow} // 3. Ensure end date can't be before start date (or tomorrow)
                 className={`mt-1 block w-full rounded-md border px-3 py-2 text-travel-text focus:outline-none focus:ring-1 sm:text-sm bg-travel-bg transition-colors ${errors.endDate
-                    ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                    : "border-travel-border focus:border-travel-accent focus:ring-travel-accent"
+                  ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                  : "border-travel-border focus:border-travel-accent focus:ring-travel-accent"
                   }`}
               />
               {errors.endDate && <p className="mt-1 text-xs text-red-500 animate-pulse">{errors.endDate.message}</p>}
@@ -125,8 +137,8 @@ export default function CreateTripPage() {
               inputMode="numeric"
               placeholder="15000"
               className={`mt-1 block w-full rounded-md border px-3 py-2 text-travel-text placeholder-travel-text-muted focus:outline-none focus:ring-1 sm:text-sm bg-travel-bg transition-colors ${errors.budget
-                  ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                  : "border-travel-border focus:border-travel-accent focus:ring-travel-accent"
+                ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                : "border-travel-border focus:border-travel-accent focus:ring-travel-accent"
                 }`}
             />
             {errors.budget && (
@@ -150,8 +162,8 @@ export default function CreateTripPage() {
               rows={4}
               placeholder="What's the plan? Chilling, Trekking, Sightseeing?"
               className={`mt-1 block w-full rounded-md border px-3 py-2 text-travel-text placeholder-travel-text-muted focus:outline-none focus:ring-1 sm:text-sm bg-travel-bg transition-colors ${errors.description
-                  ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                  : "border-travel-border focus:border-travel-accent focus:ring-travel-accent"
+                ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                : "border-travel-border focus:border-travel-accent focus:ring-travel-accent"
                 }`}
             />
             {errors.description && <p className="mt-1 text-xs text-red-500 animate-pulse">{errors.description.message}</p>}
