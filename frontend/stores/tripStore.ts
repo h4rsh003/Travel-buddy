@@ -47,8 +47,6 @@ export const useTripStore = create<TripState>((set, get) => ({
     if (get().trips.length === 0) {
       set({ loading: true });
     }
-
-    set({ loading: true });
     try {
       const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/trips`);
       set({ trips: res.data, loading: false });
