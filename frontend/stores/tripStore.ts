@@ -44,7 +44,9 @@ export const useTripStore = create<TripState>((set, get) => ({
   setFilter: (filter: FilterType) => set({ filter }),
 
   fetchTrips: async () => {
-    if (get().trips.length > 0) return;
+    if (get().trips.length === 0) {
+      set({ loading: true });
+    }
 
     set({ loading: true });
     try {
