@@ -4,7 +4,7 @@ import { JoinRequest, RequestStatus } from "../entities/JoinRequest";
 import { Trip } from "../entities/Trip";
 
 export class RequestController {
-  
+
   // Send a Join Request
   static async sendRequest(req: Request, res: Response): Promise<any> {
     try {
@@ -46,19 +46,19 @@ export class RequestController {
       return res.status(500).json({ message: "Internal Server Error" });
     }
   }
+
   // Accept or Reject Request
   static async handleRequestStatus(req: Request, res: Response): Promise<any> {
     try {
-      const { userId } = req.body.user; // Owner ID
-      const { requestId, status } = req.params; // /:requestId/:status
-
+      const { userId } = req.body.user;
+      const { requestId, status } = req.params;
       // Validate status
       if (!["accepted", "rejected"].includes(status)) {
         return res.status(400).json({ message: "Invalid status" });
       }
 
       const requestRepo = AppDataSource.getRepository(JoinRequest);
-      
+
       // Find request and load the Trip relation to check ownership
       const request = await requestRepo.findOne({
         where: { id: Number(requestId) },
@@ -83,14 +83,15 @@ export class RequestController {
       return res.status(500).json({ message: "Internal Server Error" });
     }
   }
+
   // Cancel/Withdraw Request
   static async cancelRequest(req: Request, res: Response): Promise<any> {
     try {
-      const { userId } = req.body.user; // Me
-      const { tripId } = req.params;    // The trip I want to leave
+      const { userId } = req.body.user;
+      const { tripId } = req.params;
 
       const requestRepo = AppDataSource.getRepository(JoinRequest);
-      
+
       // Find my request for this trip
       const request = await requestRepo.findOne({
         where: { userId, tripId: Number(tripId) }
@@ -104,6 +105,27 @@ export class RequestController {
       await requestRepo.remove(request);
 
       return res.status(200).json({ message: "Request withdrawn successfully" });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
+
+  // NEW: Fetch all requests sent by the logged-in user (The "Guest View")
+  static async getMyRequests(req: Request, res: Response): Promise<any> {
+    try {
+      const { userId } = req.body.user;
+
+      const requestRepo = AppDataSource.getRepository(JoinRequest);
+
+      const requests = await requestRepo.find({
+        where: { userId: userId },
+        relations: ["trip", "trip.user"],
+        order: { id: "DESC" }
+      });
+
+      return res.status(200).json(requests);
+
     } catch (error) {
       console.error(error);
       return res.status(500).json({ message: "Internal Server Error" });

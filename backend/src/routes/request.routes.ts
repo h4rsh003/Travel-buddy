@@ -13,4 +13,6 @@ router.patch("/:requestId/:status", authMiddleware, RequestController.handleRequ
 // DELETE /api/requests/:tripId (Withdraw my request)
 router.delete("/:tripId", authMiddleware, RequestController.cancelRequest);
 
+router.get("/my-requests", authMiddleware, RequestController.getMyRequests);
+
 export default router;
