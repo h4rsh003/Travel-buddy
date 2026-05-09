@@ -45,8 +45,8 @@ export default function Navbar() {
             <Link
               href="/"
               className={`hidden md:block px-3 py-2 rounded-full text-sm transition-all duration-200 ${isActive("/")
-                  ? "bg-travel-accent/10 text-travel-accent font-bold"
-                  : "text-travel-text-muted font-medium hover:text-travel-text hover:bg-gray-100/50 dark:hover:bg-white/5"
+                ? "bg-travel-accent/10 text-travel-accent font-bold"
+                : "text-travel-text-muted font-medium hover:text-travel-text hover:bg-gray-100/50 dark:hover:bg-white/5"
                 }`}
             >
               Home
@@ -57,9 +57,9 @@ export default function Navbar() {
               <>
                 <Link
                   href="/dashboard"
-                  className={`text-xs md:text-sm px-3 py-2 rounded-full transition-all duration-200 ${isActive("/dashboard")
-                      ? "bg-travel-accent/10 text-travel-accent font-bold"
-                      : "text-travel-text-muted font-medium hover:text-travel-text hover:bg-gray-100/50 dark:hover:bg-white/5"
+                  className={`text-xs md:text-sm px-3 py-2 rounded-full transition-all duration-200 ${pathname.startsWith("/dashboard")
+                    ? "bg-travel-accent/10 text-travel-accent font-bold"
+                    : "text-travel-text-muted font-medium hover:text-travel-text hover:bg-gray-100/50 dark:hover:bg-white/5"
                     }`}
                 >
                   Dashboard
@@ -67,9 +67,9 @@ export default function Navbar() {
 
                 <Link
                   href="/profile"
-                  className={`text-xs md:text-sm px-3 py-2 rounded-full transition-all duration-200 ${isActive("/profile")
-                      ? "bg-travel-accent/10 text-travel-accent font-bold"
-                      : "text-travel-text-muted font-medium hover:text-travel-text hover:bg-gray-100/50 dark:hover:bg-white/5"
+                  className={`text-xs md:text-sm px-3 py-2 rounded-full transition-all duration-200 ${pathname === "/profile"
+                    ? "bg-travel-accent/10 text-travel-accent font-bold"
+                    : "text-travel-text-muted font-medium hover:text-travel-text hover:bg-gray-100/50 dark:hover:bg-white/5"
                     }`}
                 >
                   Profile
@@ -97,8 +97,8 @@ export default function Navbar() {
                 <Link
                   href="/auth/login"
                   className={`text-xs md:text-sm px-3 py-2 rounded-full transition-all duration-200 ${isActive("/auth/login")
-                      ? "bg-travel-accent/10 text-travel-accent font-bold"
-                      : "text-travel-text-muted font-medium hover:text-travel-text hover:bg-gray-100/50 dark:hover:bg-white/5"
+                    ? "bg-travel-accent/10 text-travel-accent font-bold"
+                    : "text-travel-text-muted font-medium hover:text-travel-text hover:bg-gray-100/50 dark:hover:bg-white/5"
                     }`}
                 >
                   Login
