@@ -250,7 +250,7 @@ export default function TripDetailsPage() {
                   You Own This Trip
                 </button>
 
-                <button onClick={handleDeleteTrip} className="flex items-center gap-2 px-6 py-3 bg-red-50 text-red-600 
+                <button onClick={handleDeleteTrip} className="flex items-center justify-center gap-2 px-6 py-3 bg-red-50 text-red-600 
                   border border-red-200 rounded-lg font-bold cursor-pointer hover:bg-red-100 transition">
                   Delete Trip <FiTrash2 />
                 </button>
