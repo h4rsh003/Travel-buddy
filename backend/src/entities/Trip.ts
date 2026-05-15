@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn, OneToMany } from "typeorm";
 import { User } from "./User";
 import { JoinRequest } from "./JoinRequest";
+import { Conversation } from "./Conversation";
 
 @Entity()
 export class Trip {
@@ -40,4 +41,7 @@ export class Trip {
 
   @OneToMany(() => JoinRequest, (request) => request.trip)
   joinRequests: JoinRequest[];
+
+  @OneToMany(() => Conversation, conversation => conversation.trip)
+  conversations: Conversation[];
 }

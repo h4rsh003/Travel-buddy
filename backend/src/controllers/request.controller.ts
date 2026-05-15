@@ -2,14 +2,15 @@ import { Request, Response } from "express";
 import { AppDataSource } from "../config/data-source";
 import { JoinRequest, RequestStatus } from "../entities/JoinRequest";
 import { Trip } from "../entities/Trip";
+import { Conversation } from "../entities/Conversation";
+import { User } from "../entities/User";
 
 export class RequestController {
 
-  // Send a Join Request
   static async sendRequest(req: Request, res: Response): Promise<any> {
     try {
-      const { userId } = req.body.user; // From Middleware (Sender)
-      const { tripId } = req.body;      // From Frontend
+      const { userId } = req.body.user;
+      const { tripId } = req.body;
 
       const requestRepo = AppDataSource.getRepository(JoinRequest);
       const tripRepo = AppDataSource.getRepository(Trip);
@@ -18,12 +19,10 @@ export class RequestController {
       const trip = await tripRepo.findOne({ where: { id: tripId }, relations: ["user"] });
       if (!trip) return res.status(404).json({ message: "Trip not found" });
 
-      // 2. Prevent joining own trip
       if (trip.user.id === userId) {
         return res.status(400).json({ message: "You cannot join your own trip!" });
       }
 
-      // 3. Check for existing request
       const existingRequest = await requestRepo.findOne({
         where: { userId, tripId }
       });
@@ -31,10 +30,9 @@ export class RequestController {
         return res.status(409).json({ message: "You have already requested to join this trip." });
       }
 
-      // 4. Create Request
       const newRequest = new JoinRequest();
       newRequest.userId = userId;
-      newRequest.trip = trip; // Using the relation object
+      newRequest.trip = trip;
       newRequest.status = RequestStatus.PENDING;
 
       await requestRepo.save(newRequest);
@@ -47,11 +45,11 @@ export class RequestController {
     }
   }
 
-  // Accept or Reject Request
   static async handleRequestStatus(req: Request, res: Response): Promise<any> {
     try {
       const { userId } = req.body.user;
       const { requestId, status } = req.params;
+
       // Validate status
       if (!["accepted", "rejected"].includes(status)) {
         return res.status(400).json({ message: "Invalid status" });
@@ -59,7 +57,9 @@ export class RequestController {
 
       const requestRepo = AppDataSource.getRepository(JoinRequest);
 
-      // Find request and load the Trip relation to check ownership
+      const conversationRepo = AppDataSource.getRepository(Conversation);
+      const userRepo = AppDataSource.getRepository(User);
+
       const request = await requestRepo.findOne({
         where: { id: Number(requestId) },
         relations: ["trip", "trip.user"]
@@ -67,7 +67,6 @@ export class RequestController {
 
       if (!request) return res.status(404).json({ message: "Request not found" });
 
-      // Security: Only Trip Owner can accept/reject
       if (request.trip.user.id !== userId) {
         return res.status(403).json({ message: "You are not the owner of this trip" });
       }
@@ -75,6 +74,19 @@ export class RequestController {
       // Update Status
       request.status = status as RequestStatus;
       await requestRepo.save(request);
+
+      if (status === "accepted") {
+        const guestUser = await userRepo.findOne({ where: { id: request.userId } });
+
+        if (guestUser) {
+          const newConversation = conversationRepo.create({
+            type: "DIRECT",
+            trip: request.trip,
+            participants: [guestUser, request.trip.user] // [Guest, Host]
+          });
+          await conversationRepo.save(newConversation);
+        }
+      }
 
       return res.status(200).json({ message: `Request ${status} successfully!` });
 
@@ -84,15 +96,12 @@ export class RequestController {
     }
   }
 
-  // Cancel/Withdraw Request
   static async cancelRequest(req: Request, res: Response): Promise<any> {
     try {
       const { userId } = req.body.user;
       const { tripId } = req.params;
 
       const requestRepo = AppDataSource.getRepository(JoinRequest);
-
-      // Find my request for this trip
       const request = await requestRepo.findOne({
         where: { userId, tripId: Number(tripId) }
       });
@@ -101,7 +110,6 @@ export class RequestController {
         return res.status(404).json({ message: "Request not found" });
       }
 
-      // Delete it
       await requestRepo.remove(request);
 
       return res.status(200).json({ message: "Request withdrawn successfully" });
@@ -111,7 +119,6 @@ export class RequestController {
     }
   }
 
-  // NEW: Fetch all requests sent by the logged-in user (The "Guest View")
   static async getMyRequests(req: Request, res: Response): Promise<any> {
     try {
       const { userId } = req.body.user;

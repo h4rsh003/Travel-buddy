@@ -4,9 +4,11 @@ import {
   Column,
   CreateDateColumn,
   OneToMany,
+  ManyToMany,
 } from "typeorm";
 import { Trip } from "./Trip";
 import { JoinRequest } from "./JoinRequest";
+import { Conversation } from "./Conversation";
 
 @Entity()
 export class User {
@@ -37,7 +39,7 @@ export class User {
   @Column({ default: false })
   isVerified: boolean;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;
 
   @OneToMany(() => Trip, (trip) => trip.user)
@@ -45,4 +47,7 @@ export class User {
 
   @OneToMany(() => JoinRequest, (request) => request.user)
   joinRequests: JoinRequest[];
+
+  @ManyToMany(() => Conversation, conversation => conversation.participants)
+  conversations: Conversation[];
 }

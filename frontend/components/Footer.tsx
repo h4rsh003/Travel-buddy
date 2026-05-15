@@ -1,10 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { FiMail, FiLinkedin, FiInstagram, FiHeart } from "react-icons/fi";
 
 export default function Footer() {
+  const pathname = usePathname();
   const currentYear = new Date().getFullYear();
+
+  if (pathname !== "/") {
+    return null;
+  }
 
   return (
     <footer className="bg-travel-card border-t border-travel-border mt-auto">
