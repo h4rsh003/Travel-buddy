@@ -55,26 +55,33 @@ export default function ChatWindow() {
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const messagesContainerRef = useRef<HTMLDivElement>(null);
-
     const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // ✅ FIX 1: Track if the user has manually scrolled up
+    const isUserScrolledUp = useRef(false);
 
     const activeChat = conversations.find(c => c.id === activeConversationId);
     const otherUser = activeChat?.participants.find(p => p.id !== myUserId) || activeChat?.participants[0];
 
-    // Connect socket with JWT token
     useEffect(() => {
         if (session?.user?.accessToken) {
             connectSocket(session.user.accessToken);
         }
     }, [session]);
 
+    // ✅ FIX 2: Smart Auto-scroll (Only scroll if user is already near the bottom)
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        if (!isUserScrolledUp.current) {
+            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        }
     }, [messages]);
 
     const handleScroll = useCallback(() => {
         if (!messagesContainerRef.current || !activeConversationId) return;
-        const { scrollTop } = messagesContainerRef.current;
+        const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
+
+        // Check if user is scrolled up more than 100px from the bottom
+        isUserScrolledUp.current = scrollHeight - scrollTop - clientHeight > 100;
 
         if (scrollTop < 100 && hasMoreMessages && !isLoadingMessages) {
             loadMoreMessages(activeConversationId);
@@ -93,11 +100,7 @@ export default function ChatWindow() {
             joinCurrentRoom();
         }
 
-        // Event Handlers
-        const handleConnect = () => {
-            joinCurrentRoom();
-        };
-
+        const handleConnect = () => joinCurrentRoom();
         const handleDisconnect = () => setIsConnected(false);
         const handleConnectError = (error: Error) => {
             console.error("Socket connection error:", error);
@@ -118,9 +121,7 @@ export default function ChatWindow() {
         };
 
         const handleMessageDeleted = ({ messageId }: { messageId: number }) => {
-            if (setMessagesDeleted) {
-                setMessagesDeleted(messageId);
-            }
+            if (setMessagesDeleted) setMessagesDeleted(messageId);
         };
 
         const handleUserTyping = ({ userId, userName }: { userId: number; userName: string }) => {
@@ -196,7 +197,6 @@ export default function ChatWindow() {
         }
     };
 
-    // Typing Logic
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setInputText(e.target.value);
 
@@ -205,14 +205,10 @@ export default function ChatWindow() {
             userName: currentUser.name
         });
 
-        if (typingTimeoutRef.current) {
-            clearTimeout(typingTimeoutRef.current);
-        }
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
 
         typingTimeoutRef.current = setTimeout(() => {
-            socket.emit("stop_typing", {
-                conversationId: activeConversationId
-            });
+            socket.emit("stop_typing", { conversationId: activeConversationId });
         }, 1000);
     };
 
@@ -221,9 +217,10 @@ export default function ChatWindow() {
         if (!inputText.trim() || !activeConversationId) return;
 
         socket.emit("stop_typing", { conversationId: activeConversationId });
-        if (typingTimeoutRef.current) {
-            clearTimeout(typingTimeoutRef.current);
-        }
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+
+        // Reset scroll lock so your own message scrolls you down
+        isUserScrolledUp.current = false;
 
         sendMessage(activeConversationId, inputText, currentUser);
         setInputText("");
@@ -232,10 +229,11 @@ export default function ChatWindow() {
     if (!activeChat) return null;
 
     return (
-        <div className="flex flex-col h-full w-full bg-travel-bg relative">
+        // ✅ FIX 3: overflow-hidden added to parent to prevent whole-page scrolling on mobile
+        <div className="flex flex-col h-full w-full bg-travel-bg relative overflow-hidden">
 
-            {/* Header */}
-            <div className="flex items-center justify-between p-4 bg-travel-card border-b border-travel-border shadow-sm z-30">
+            {/* ✅ FIX 4: Header made shrink-0 and sticky to always stay visible */}
+            <div className="shrink-0 flex items-center justify-between p-4 bg-travel-card border-b border-travel-border shadow-sm z-40 sticky top-0">
                 <div className="flex items-center gap-3">
                     <button
                         onClick={() => isSelectionMode ? cancelSelection() : setActiveConversation(null)}
@@ -288,22 +286,24 @@ export default function ChatWindow() {
                 </div>
             </div>
 
-            {hasMoreMessages && !isLoadingMessages && messages.length >= 50 && (
-                <div className="p-2 bg-travel-card/50 text-center">
-                    <button
-                        onClick={() => loadMoreMessages(activeConversationId!)}
-                        className="text-sm text-blue-600 hover:underline"
-                    >
-                        Load older messages
-                    </button>
-                </div>
-            )}
-
+            {/* Message Feed */}
             <div
                 ref={messagesContainerRef}
                 onScroll={handleScroll}
                 className="flex-1 overflow-y-auto p-4 space-y-4 bg-travel-bg"
             >
+                {/* ✅ FIX 5: Load More Button moved INSIDE the scroll container */}
+                {hasMoreMessages && !isLoadingMessages && messages.length >= 50 && (
+                    <div className="p-2 w-full flex justify-center mb-2">
+                        <button
+                            onClick={() => loadMoreMessages(activeConversationId!)}
+                            className="text-sm bg-travel-card px-4 py-1 rounded-full shadow-sm text-blue-600 hover:underline"
+                        >
+                            Load older messages
+                        </button>
+                    </div>
+                )}
+
                 {isLoadingMessages && messages.length === 0 ? (
                     <div className="flex justify-center items-center h-full text-travel-text-muted">
                         Loading...
@@ -387,14 +387,14 @@ export default function ChatWindow() {
 
             {/* Typing Indicator */}
             {typingUsers.length > 0 && !isSelectionMode && (
-                <div className="px-4 py-1 bg-travel-card/50 text-xs text-travel-text-muted italic">
+                <div className="px-4 py-1 bg-travel-card/50 text-xs text-travel-text-muted italic shrink-0">
                     {typingUsers.map(u => u.name).join(", ")} {typingUsers.length === 1 ? 'is' : 'are'} typing...
                 </div>
             )}
 
             {/* Input Bar */}
             {!isSelectionMode && (
-                <div className="p-3 bg-travel-card border-t border-travel-border">
+                <div className="p-3 bg-travel-card border-t border-travel-border shrink-0">
                     <form onSubmit={handleSend} className="flex gap-2">
                         <input
                             type="text"
