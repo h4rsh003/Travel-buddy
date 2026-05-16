@@ -65,7 +65,6 @@ export class ChatController {
                 })
                 .orderBy("message.createdAt", "DESC")
                 .limit(Number(limit));
-\
             if (before) {
                 queryBuilder.andWhere("message.createdAt < :before", { before });
             }
