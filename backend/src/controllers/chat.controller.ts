@@ -3,16 +3,39 @@ import { AppDataSource } from "../config/data-source";
 import { Conversation } from "../entities/Conversation";
 import { Message } from "../entities/Message";
 
+import { In } from "typeorm"; // Make sure to add this import!
 export class ChatController {
+
+
+    // ... inside ChatController ...
 
     static async getMyConversations(req: Request, res: Response): Promise<any> {
         try {
             const userId = req.body.user.userId;
             const conversationRepo = AppDataSource.getRepository(Conversation);
 
-            const conversations = await conversationRepo.find({
+            // STEP 1: Find the IDs of conversations this user belongs to
+            const userConversations = await conversationRepo.find({
                 where: {
                     participants: { id: userId }
+                },
+                select: ["id"] // Only fetch the ID to save memory
+            });
+
+            // If user has no chats, return empty array early
+            if (userConversations.length === 0) {
+                return res.status(200).json([]);
+            }
+
+            // Extract just the numbers into an array (e.g., [1, 5, 12])
+            const conversationIds = userConversations.map(c => c.id);
+
+            // STEP 2: Fetch the full conversations using those IDs
+            // Because we are not filtering the participants in the 'where' clause here,
+            // TypeORM will return ALL participants (both you and your buddy).
+            const conversations = await conversationRepo.find({
+                where: {
+                    id: In(conversationIds)
                 },
                 relations: ["participants", "trip"],
                 order: { lastMessageAt: "DESC" }

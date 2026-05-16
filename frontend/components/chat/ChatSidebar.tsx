@@ -73,8 +73,7 @@ export default function ChatSidebar() {
 
             <div className="flex-1 overflow-y-auto">
                 {conversations.map((chat) => {
-                    const otherUser = chat.participants.find(p => p.id !== myUserId) || chat.participants[0];
-
+                    const otherUser = chat.participants.find(p => String(p.id) !== String(myUserId)) || chat.participants[0];
                     return (
                         <div
                             key={chat.id}
