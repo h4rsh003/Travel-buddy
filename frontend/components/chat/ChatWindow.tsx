@@ -21,6 +21,18 @@ const formatLocalTime = (dateString?: string) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
 
+const handleInputFocus = () => {
+    setTimeout(() => {
+        window.scrollTo(0, 0);
+    }, 50);
+};
+
+const handleInputBlur = () => {
+    setTimeout(() => {
+        window.scrollTo(0, 0);
+    }, 50);
+};
+
 export default function ChatWindow() {
     const { data: session } = useSession();
     const myUserId = Number(session?.user?.id);
@@ -433,6 +445,8 @@ export default function ChatWindow() {
                             type="text"
                             value={inputText}
                             onChange={handleInputChange}
+                            onFocus={handleInputFocus}
+                            onBlur={handleInputBlur}
                             placeholder="Type a message..."
                             maxLength={5000}
                             className="flex-1 px-4 py-2 rounded-full border border-travel-border bg-travel-bg text-travel-text focus:outline-none focus:border-blue-500 transition-colors"
