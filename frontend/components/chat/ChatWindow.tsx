@@ -57,11 +57,12 @@ export default function ChatWindow() {
     const messagesContainerRef = useRef<HTMLDivElement>(null);
     const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    // ✅ FIX 1: Track if the user has manually scrolled up
+    // UI State for WhatsApp style scroll button
+    const [showScrollDown, setShowScrollDown] = useState(false);
     const isUserScrolledUp = useRef(false);
 
     const activeChat = conversations.find(c => c.id === activeConversationId);
-    const otherUser = activeChat?.participants.find(p => p.id !== myUserId) || activeChat?.participants[0];
+    const otherUser = activeChat?.participants.find(p => String(p.id) !== String(myUserId)) || activeChat?.participants[0];
 
     useEffect(() => {
         if (session?.user?.accessToken) {
@@ -69,10 +70,12 @@ export default function ChatWindow() {
         }
     }, [session]);
 
-    // ✅ FIX 2: Smart Auto-scroll (Only scroll if user is already near the bottom)
     useEffect(() => {
-        if (!isUserScrolledUp.current) {
-            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        if (!isUserScrolledUp.current && messagesContainerRef.current) {
+            messagesContainerRef.current.scrollTo({
+                top: messagesContainerRef.current.scrollHeight,
+                behavior: "smooth"
+            });
         }
     }, [messages]);
 
@@ -80,13 +83,25 @@ export default function ChatWindow() {
         if (!messagesContainerRef.current || !activeConversationId) return;
         const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
 
-        // Check if user is scrolled up more than 100px from the bottom
-        isUserScrolledUp.current = scrollHeight - scrollTop - clientHeight > 100;
+        const isScrolledUp = scrollHeight - scrollTop - clientHeight > 150;
+        isUserScrolledUp.current = isScrolledUp;
+        setShowScrollDown(isScrolledUp);
 
         if (scrollTop < 100 && hasMoreMessages && !isLoadingMessages) {
             loadMoreMessages(activeConversationId);
         }
     }, [activeConversationId, hasMoreMessages, isLoadingMessages, loadMoreMessages]);
+
+    const handleScrollToBottom = () => {
+        if (messagesContainerRef.current) {
+            messagesContainerRef.current.scrollTo({
+                top: messagesContainerRef.current.scrollHeight,
+                behavior: "smooth"
+            });
+            setShowScrollDown(false);
+            isUserScrolledUp.current = false;
+        }
+    };
 
     useEffect(() => {
         if (!activeConversationId) return;
@@ -108,7 +123,7 @@ export default function ChatWindow() {
         };
 
         const handleReceiveMessage = (newMessage: Message) => {
-            if (newMessage.sender.id !== myUserId) {
+            if (String(newMessage.sender.id) !== String(myUserId)) {
                 addMessage(newMessage);
 
                 setTimeout(() => {
@@ -125,14 +140,14 @@ export default function ChatWindow() {
         };
 
         const handleUserTyping = ({ userId, userName }: { userId: number; userName: string }) => {
-            if (userId === myUserId) return;
+            if (String(userId) === String(myUserId)) return;
             setTypingUsers(prev =>
-                prev.some(u => u.id === userId) ? prev : [...prev, { id: userId, name: userName }]
+                prev.some(u => String(u.id) === String(userId)) ? prev : [...prev, { id: userId, name: userName }]
             );
         };
 
         const handleUserStoppedTyping = ({ userId }: { userId: number }) => {
-            setTypingUsers(prev => prev.filter(u => u.id !== userId));
+            setTypingUsers(prev => prev.filter(u => String(u.id) !== String(userId)));
         };
 
         const handleMessagesRead = ({ messageIds }: { messageIds: number[] }) => {
@@ -164,7 +179,7 @@ export default function ChatWindow() {
         if (!activeConversationId || messages.length === 0) return;
 
         const unreadMessages = messages.filter(
-            msg => msg.sender.id !== myUserId && msg.status !== "READ"
+            msg => String(msg.sender.id) !== String(myUserId) && msg.status !== "READ"
         );
 
         if (unreadMessages.length > 0) {
@@ -219,7 +234,6 @@ export default function ChatWindow() {
         socket.emit("stop_typing", { conversationId: activeConversationId });
         if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
 
-        // Reset scroll lock so your own message scrolls you down
         isUserScrolledUp.current = false;
 
         sendMessage(activeConversationId, inputText, currentUser);
@@ -229,11 +243,9 @@ export default function ChatWindow() {
     if (!activeChat) return null;
 
     return (
-        // ✅ FIX 3: overflow-hidden added to parent to prevent whole-page scrolling on mobile
-        <div className="flex flex-col h-full w-full bg-travel-bg relative overflow-hidden">
+        <div className="flex flex-col h-full w-full bg-travel-bg overflow-hidden relative">
 
-            {/* ✅ FIX 4: Header made shrink-0 and sticky to always stay visible */}
-            <div className="shrink-0 flex items-center justify-between p-4 bg-travel-card border-b border-travel-border shadow-sm z-40 sticky top-0">
+            <div className="flex-none flex items-center justify-between p-4 bg-travel-card border-b border-travel-border shadow-sm z-40">
                 <div className="flex items-center gap-3">
                     <button
                         onClick={() => isSelectionMode ? cancelSelection() : setActiveConversation(null)}
@@ -286,13 +298,11 @@ export default function ChatWindow() {
                 </div>
             </div>
 
-            {/* Message Feed */}
             <div
                 ref={messagesContainerRef}
                 onScroll={handleScroll}
-                className="flex-1 overflow-y-auto p-4 space-y-4 bg-travel-bg"
+                className="flex-1 overflow-y-auto p-4 space-y-4 bg-travel-bg overscroll-contain"
             >
-                {/* ✅ FIX 5: Load More Button moved INSIDE the scroll container */}
                 {hasMoreMessages && !isLoadingMessages && messages.length >= 50 && (
                     <div className="p-2 w-full flex justify-center mb-2">
                         <button
@@ -316,7 +326,7 @@ export default function ChatWindow() {
                     messages
                         .filter(msg => !msg.deletedBy?.includes(myUserId))
                         .map((msg) => {
-                            const isMe = msg.sender.id === myUserId;
+                            const isMe = String(msg.sender.id) === String(myUserId);
                             const isSelected = selectedIds.includes(msg.id);
 
                             if (msg.isDeletedForEveryone) {
@@ -392,9 +402,20 @@ export default function ChatWindow() {
                 </div>
             )}
 
-            {/* Input Bar */}
+            {showScrollDown && (
+                <button
+                    onClick={handleScrollToBottom}
+                    className="absolute right-4 bottom-20 z-50 w-10 h-10 bg-travel-card dark:bg-gray-800 border border-travel-border rounded-full shadow-lg flex items-center justify-center text-travel-text-muted hover:text-blue-500 transition-all"
+                    aria-label="Scroll to bottom"
+                >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                    </svg>
+                </button>
+            )}
+
             {!isSelectionMode && (
-                <div className="p-3 bg-travel-card border-t border-travel-border shrink-0">
+                <div className="flex-none p-3 border-t border-travel-border w-full bg-travel-bg">
                     <form onSubmit={handleSend} className="flex gap-2">
                         <input
                             type="text"
