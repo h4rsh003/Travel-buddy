@@ -1,23 +1,36 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useChatStore } from "@/stores/useChatStore";
 import { connectSocket, disconnectSocket } from "@/libs/socket";
 import ChatSidebar from "@/components/chat/ChatSidebar";
 import ChatWindow from "@/components/chat/ChatWindow";
 
-export default function MessagesPage() {
+function ChatContent() {
     const { status, data: session } = useSession();
     const router = useRouter();
-    const { fetchConversations, activeConversationId } = useChatStore();
+    const searchParams = useSearchParams();
+    const chatIdParam = searchParams.get("chat");
+
+    const { fetchConversations, activeConversationId, setActiveConversation } = useChatStore();
 
     useEffect(() => {
         if (status === "unauthenticated") {
             router.push("/login");
         }
     }, [status, router]);
+
+    useEffect(() => {
+        if (status === "authenticated") {
+            if (chatIdParam) {
+                setActiveConversation(Number(chatIdParam));
+            } else {
+                setActiveConversation(null);
+            }
+        }
+    }, [chatIdParam, setActiveConversation, status]);
 
     useEffect(() => {
         if (status === "authenticated") {
@@ -69,5 +82,19 @@ export default function MessagesPage() {
                 )}
             </div>
         </div>
+    );
+}
+
+export default function MessagesPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex h-[calc(100dvh-80px)] w-full items-center justify-center bg-travel-bg border-t border-travel-border">
+                <div className="flex flex-col items-center">
+                    <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+                </div>
+            </div>
+        }>
+            <ChatContent />
+        </Suspense>
     );
 }

@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useChatStore, Message } from "@/stores/useChatStore";
 import { socket, connectSocket } from "@/libs/socket";
 import DOMPurify from "isomorphic-dompurify";
+import { useRouter } from "next/navigation";
 
 const formatLocalTime = (dateString?: string) => {
     if (!dateString) return "";
@@ -23,6 +24,7 @@ const formatLocalTime = (dateString?: string) => {
 export default function ChatWindow() {
     const { data: session } = useSession();
     const myUserId = Number(session?.user?.id);
+    const router = useRouter();
 
     const currentUser = {
         id: myUserId,
@@ -36,7 +38,6 @@ export default function ChatWindow() {
         isLoadingMessages,
         hasMoreMessages,
         sendMessage,
-        setActiveConversation,
         addMessage,
         deleteMessage,
         loadMoreMessages,
@@ -250,14 +251,13 @@ export default function ChatWindow() {
     if (!activeChat) return null;
 
     return (
-        // ✅ Main wrapper: dynamic viewport height for mobile keyboards
+
         <div className="flex flex-col h-full w-full bg-travel-bg overflow-hidden relative">
 
-            {/* ✅ Header: flex-none so it never shrinks */}
             <div className="flex-none flex items-center justify-between p-4 bg-travel-card border-b border-travel-border shadow-sm z-40">
                 <div className="flex items-center gap-3">
                     <button
-                        onClick={() => isSelectionMode ? cancelSelection() : setActiveConversation(null)}
+                        onClick={() => isSelectionMode ? cancelSelection() : router.push('/messages')}
                         className="p-2 rounded-full hover:bg-travel-bg text-travel-text-muted transition-colors"
                         aria-label="Go back"
                         title="Go back"

@@ -3,6 +3,8 @@
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useChatStore } from "@/stores/useChatStore";
+import { useRouter } from "next/navigation";
+
 
 const formatLocalDate = (dateString?: string) => {
     if (!dateString) return "";
@@ -20,8 +22,9 @@ const formatLocalDate = (dateString?: string) => {
 export default function ChatSidebar() {
     const { data: session } = useSession();
     const myUserId = Number(session?.user?.id);
+    const router = useRouter();
 
-    const { conversations, activeConversationId, setActiveConversation, isLoadingInbox } = useChatStore();
+    const { conversations, activeConversationId, isLoadingInbox } = useChatStore();
 
     if (isLoadingInbox) {
         return (
@@ -77,7 +80,7 @@ export default function ChatSidebar() {
                     return (
                         <div
                             key={chat.id}
-                            onClick={() => setActiveConversation(chat.id)}
+                            onClick={() => router.push(`?chat=${chat.id}`)}
                             className={`p-4 border-b border-travel-border/50 cursor-pointer transition-colors duration-200 flex items-center gap-3 ${activeConversationId === chat.id
                                 ? 'bg-blue-500/10'
                                 : 'hover:bg-travel-bg'

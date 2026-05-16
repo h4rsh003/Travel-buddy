@@ -50,13 +50,13 @@ export class RequestController {
       const { userId } = req.body.user;
       const { requestId, status } = req.params;
 
-      // Validate status
-      if (!["accepted", "rejected"].includes(status)) {
+      // Validate status (handling both upper and lower case safely)
+      const normalizedStatus = status.toLowerCase();
+      if (!["accepted", "rejected"].includes(normalizedStatus)) {
         return res.status(400).json({ message: "Invalid status" });
       }
 
       const requestRepo = AppDataSource.getRepository(JoinRequest);
-
       const conversationRepo = AppDataSource.getRepository(Conversation);
       const userRepo = AppDataSource.getRepository(User);
 
@@ -72,23 +72,32 @@ export class RequestController {
       }
 
       // Update Status
-      request.status = status as RequestStatus;
+      request.status = normalizedStatus === "accepted" ? RequestStatus.ACCEPTED : RequestStatus.REJECTED;
       await requestRepo.save(request);
-
-      if (status === "accepted") {
+      if (normalizedStatus === "accepted") {
         const guestUser = await userRepo.findOne({ where: { id: request.userId } });
 
         if (guestUser) {
-          const newConversation = conversationRepo.create({
-            type: "DIRECT",
-            trip: request.trip,
-            participants: [guestUser, request.trip.user] // [Guest, Host]
-          });
-          await conversationRepo.save(newConversation);
+
+          const existingConversation = await conversationRepo
+            .createQueryBuilder("conversation")
+            .innerJoin("conversation.participants", "p1", "p1.id = :hostId", { hostId: request.trip.user.id })
+            .innerJoin("conversation.participants", "p2", "p2.id = :guestId", { guestId: guestUser.id })
+            .where("conversation.tripId = :tripId", { tripId: request.trip.id })
+            .getOne();
+
+          if (!existingConversation) {
+            const newConversation = conversationRepo.create({
+              type: "DIRECT",
+              trip: request.trip,
+              participants: [guestUser, request.trip.user] // [Guest, Host]
+            });
+            await conversationRepo.save(newConversation);
+          }
         }
       }
 
-      return res.status(200).json({ message: `Request ${status} successfully!` });
+      return res.status(200).json({ message: `Request ${normalizedStatus} successfully!` });
 
     } catch (error) {
       console.error(error);
