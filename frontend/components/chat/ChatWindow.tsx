@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useChatStore, Message } from "@/stores/useChatStore";
 import { socket, connectSocket } from "@/libs/socket";
@@ -44,12 +44,10 @@ export default function ChatWindow() {
         setMessagesDeleted
     } = useChatStore();
 
-    // UI States
     const [isSelectionMode, setIsSelectionMode] = useState(false);
     const [selectedIds, setSelectedIds] = useState<(string | number)[]>([]);
     const [inputText, setInputText] = useState("");
 
-    // Typing users tracking
     const [typingUsers, setTypingUsers] = useState<{ id: number, name: string }[]>([]);
     const [isConnected, setIsConnected] = useState(false);
 
@@ -70,6 +68,7 @@ export default function ChatWindow() {
         }
     }, [session]);
 
+    // Smart Auto-scroll
     useEffect(() => {
         if (!isUserScrolledUp.current && messagesContainerRef.current) {
             messagesContainerRef.current.scrollTo({
@@ -79,11 +78,18 @@ export default function ChatWindow() {
         }
     }, [messages]);
 
-    const handleScroll = useCallback(() => {
-        if (!messagesContainerRef.current || !activeConversationId) return;
-        const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
+    // Enhanced Scroll Handler
+    const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+        const target = e.currentTarget;
+        if (!target || !activeConversationId) return;
 
-        const isScrolledUp = scrollHeight - scrollTop - clientHeight > 150;
+        const { scrollTop, scrollHeight, clientHeight } = target;
+
+        // Check if user is scrolled up more than 50px from the bottom
+        // Math.ceil fixes precision issues on high-DPI mobile screens
+        const distanceToBottom = scrollHeight - Math.ceil(scrollTop) - clientHeight;
+        const isScrolledUp = distanceToBottom > 50;
+
         isUserScrolledUp.current = isScrolledUp;
         setShowScrollDown(isScrolledUp);
 
@@ -235,6 +241,7 @@ export default function ChatWindow() {
         if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
 
         isUserScrolledUp.current = false;
+        setShowScrollDown(false);
 
         sendMessage(activeConversationId, inputText, currentUser);
         setInputText("");
@@ -243,8 +250,10 @@ export default function ChatWindow() {
     if (!activeChat) return null;
 
     return (
+        // ✅ Main wrapper: dynamic viewport height for mobile keyboards
         <div className="flex flex-col h-full w-full bg-travel-bg overflow-hidden relative">
 
+            {/* ✅ Header: flex-none so it never shrinks */}
             <div className="flex-none flex items-center justify-between p-4 bg-travel-card border-b border-travel-border shadow-sm z-40">
                 <div className="flex items-center gap-3">
                     <button
@@ -298,10 +307,11 @@ export default function ChatWindow() {
                 </div>
             </div>
 
+            {/* ✅ Messages Feed: flex-1 takes up the middle, h-0 forces it to contain the scroll internally */}
             <div
                 ref={messagesContainerRef}
                 onScroll={handleScroll}
-                className="flex-1 overflow-y-auto p-4 space-y-4 bg-travel-bg overscroll-contain"
+                className="flex-1 h-0 overflow-y-auto p-4 space-y-4 bg-travel-bg overscroll-contain"
             >
                 {hasMoreMessages && !isLoadingMessages && messages.length >= 50 && (
                     <div className="p-2 w-full flex justify-center mb-2">
@@ -402,6 +412,7 @@ export default function ChatWindow() {
                 </div>
             )}
 
+            {/* ✅ Floating Scroll-to-Bottom Button */}
             {showScrollDown && (
                 <button
                     onClick={handleScrollToBottom}
@@ -414,8 +425,9 @@ export default function ChatWindow() {
                 </button>
             )}
 
+            {/* ✅ Input Box: flex-none locks it to the bottom */}
             {!isSelectionMode && (
-                <div className="flex-none p-3 border-t border-travel-border w-full bg-travel-bg">
+                <div className="flex-none p-3 bg-travel-card border-t border-travel-border w-full">
                     <form onSubmit={handleSend} className="flex gap-2">
                         <input
                             type="text"

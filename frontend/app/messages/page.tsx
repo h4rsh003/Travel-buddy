@@ -35,7 +35,7 @@ export default function MessagesPage() {
 
     if (status === "loading") {
         return (
-            <div className="flex h-[calc(100vh-80px)] w-full items-center justify-center bg-travel-bg border-t border-travel-border">
+            <div className="flex h-[calc(100dvh-80px)] w-full items-center justify-center bg-travel-bg border-t border-travel-border">
                 <div className="flex flex-col items-center">
                     <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
                     <p className="text-travel-text-muted font-medium animate-pulse">Loading your messages...</p>
@@ -49,7 +49,7 @@ export default function MessagesPage() {
     }
 
     return (
-        <div className="flex h-[calc(100vh-80px)] w-full bg-travel-bg border-t border-travel-border overflow-hidden">
+        <div className="flex h-[calc(100dvh-80px)] w-full bg-travel-bg border-t border-travel-border overflow-hidden">
             <div className={`w-full md:w-1/3 lg:w-1/4 border-r border-travel-border bg-travel-card ${activeConversationId ? 'hidden md:block' : 'block'
                 }`}>
                 <ChatSidebar />
