@@ -56,7 +56,7 @@ interface ChatStore {
     sendMessage: (conversationId: number, content: string, currentUser: ChatUser) => Promise<void>;
     addMessage: (message: Message) => void;
     deleteMessage: (conversationId: number, messageId: number | string, type: "ME" | "EVERYONE", myUserId: number) => Promise<void>;
-    setMessagesDeleted: (messageId: number | string) => void;
+    setMessagesDeleted: (messageId: number, type?: "ME" | "EVERYONE") => void;
     updateMessageStatus: (messageIds: (number | string)[], status: "READ" | "DELIVERED") => void;
 }
 

@@ -67,13 +67,39 @@ export default function ChatWindow() {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const messagesContainerRef = useRef<HTMLDivElement>(null);
     const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-    // UI State for WhatsApp style scroll button
     const [showScrollDown, setShowScrollDown] = useState(false);
     const isUserScrolledUp = useRef(false);
 
     const activeChat = conversations.find(c => c.id === activeConversationId);
     const otherUser = activeChat?.participants.find(p => String(p.id) !== String(myUserId)) || activeChat?.participants[0];
+
+    const selectedMessages = messages.filter(msg => selectedIds.includes(msg.id));
+
+    const canDeleteForEveryone = selectedMessages.length > 0 && selectedMessages.every(msg =>
+        String(msg.sender.id) === String(myUserId) && !msg.isDeletedForEveryone
+    );
+
+    const handleTouchStart = (id: string | number) => {
+        if (isSelectionMode) return;
+
+        longPressTimerRef.current = setTimeout(() => {
+            setIsSelectionMode(true);
+            setSelectedIds([id]);
+
+            if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
+                window.navigator.vibrate(50);
+            }
+        }, 500);
+    };
+
+    const clearLongPress = () => {
+        if (longPressTimerRef.current) {
+            clearTimeout(longPressTimerRef.current);
+            longPressTimerRef.current = null;
+        }
+    };
 
     useEffect(() => {
         if (session?.user?.accessToken) {
@@ -81,7 +107,6 @@ export default function ChatWindow() {
         }
     }, [session]);
 
-    // Smart Auto-scroll
     useEffect(() => {
         if (!isUserScrolledUp.current && messagesContainerRef.current) {
             messagesContainerRef.current.scrollTo({
@@ -91,15 +116,11 @@ export default function ChatWindow() {
         }
     }, [messages]);
 
-    // Enhanced Scroll Handler
     const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
         const target = e.currentTarget;
         if (!target || !activeConversationId) return;
 
         const { scrollTop, scrollHeight, clientHeight } = target;
-
-        // Check if user is scrolled up more than 50px from the bottom
-        // Math.ceil fixes precision issues on high-DPI mobile screens
         const distanceToBottom = scrollHeight - Math.ceil(scrollTop) - clientHeight;
         const isScrolledUp = distanceToBottom > 50;
 
@@ -154,8 +175,8 @@ export default function ChatWindow() {
             }
         };
 
-        const handleMessageDeleted = ({ messageId }: { messageId: number }) => {
-            if (setMessagesDeleted) setMessagesDeleted(messageId);
+        const handleMessageDeleted = ({ messageId, type }: { messageId: number, type: "ME" | "EVERYONE" }) => {
+            if (setMessagesDeleted) setMessagesDeleted(messageId, type);
         };
 
         const handleUserTyping = ({ userId, userName }: { userId: number; userName: string }) => {
@@ -221,11 +242,16 @@ export default function ChatWindow() {
         setSelectedIds([]);
     };
 
-    const handleBulkDelete = () => {
+    const handleBulkDelete = (type: "ME" | "EVERYONE") => {
         if (selectedIds.length === 0) return;
-        if (window.confirm(`Delete ${selectedIds.length} message(s)?`)) {
+
+        const confirmMsg = type === "EVERYONE"
+            ? `Delete ${selectedIds.length} message(s) for everyone?`
+            : `Delete ${selectedIds.length} message(s) for yourself?`;
+
+        if (window.confirm(confirmMsg)) {
             selectedIds.forEach(id => {
-                deleteMessage(activeConversationId!, id as number, "EVERYONE", myUserId);
+                deleteMessage(activeConversationId!, id as number, type, myUserId);
             });
             cancelSelection();
         }
@@ -263,7 +289,6 @@ export default function ChatWindow() {
     if (!activeChat) return null;
 
     return (
-
         <div className="flex flex-col h-full w-full bg-travel-bg overflow-hidden relative">
 
             <div className="flex-none flex items-center justify-between p-4 bg-travel-card border-b border-travel-border shadow-sm z-40">
@@ -301,13 +326,44 @@ export default function ChatWindow() {
 
                 <div className="flex gap-2">
                     {isSelectionMode ? (
-                        <button
-                            onClick={handleBulkDelete}
-                            disabled={selectedIds.length === 0}
-                            className="flex items-center gap-1.5 text-sm bg-red-600 text-white px-4 py-1.5 rounded-full hover:bg-red-700 disabled:opacity-50 transition-colors shadow-sm"
-                        >
-                            Delete
-                        </button>
+                        <div className="flex items-center gap-2">
+                            {canDeleteForEveryone ? (
+                                <>
+                                    <button
+                                        onClick={() => handleBulkDelete("EVERYONE")}
+                                        className="flex items-center gap-1.5 text-xs sm:text-sm bg-red-600/10 text-red-600 px-3 py-1.5 rounded-full hover:bg-red-600/20 transition-colors shadow-sm font-medium border border-red-200"
+                                        title="Delete for everyone in chat"
+                                    >
+                                        <svg className="w-4 h-4 hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                        For Everyone
+                                    </button>
+                                    <button
+                                        onClick={() => handleBulkDelete("ME")}
+                                        className="flex items-center gap-1.5 text-xs sm:text-sm bg-gray-600 text-white px-3 py-1.5 rounded-full hover:bg-gray-700 transition-colors shadow-sm font-medium"
+                                        title="Delete only for me"
+                                    >
+                                        <svg className="w-4 h-4 hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                        For Me
+                                    </button>
+                                </>
+                            ) : (
+                                // ✅ If only "Delete for Me" is allowed, show a clean Trash icon button
+                                <button
+                                    onClick={() => handleBulkDelete("ME")}
+                                    disabled={selectedIds.length === 0}
+                                    className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors disabled:opacity-50"
+                                    title="Delete for me"
+                                >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            )}
+                        </div>
                     ) : (
                         <button
                             onClick={() => setIsSelectionMode(true)}
@@ -319,7 +375,6 @@ export default function ChatWindow() {
                 </div>
             </div>
 
-            {/* ✅ Messages Feed: flex-1 takes up the middle, h-0 forces it to contain the scroll internally */}
             <div
                 ref={messagesContainerRef}
                 onScroll={handleScroll}
@@ -351,65 +406,76 @@ export default function ChatWindow() {
                             const isMe = String(msg.sender.id) === String(myUserId);
                             const isSelected = selectedIds.includes(msg.id);
 
-                            if (msg.isDeletedForEveryone) {
-                                return (
-                                    <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                                        <div className="max-w-[75%] px-4 py-2 shadow-sm rounded-2xl bg-travel-card border border-travel-border text-travel-text-muted italic text-sm">
-                                            🚫 This message was deleted
-                                        </div>
-                                    </div>
-                                );
-                            }
-
                             return (
                                 <div
                                     key={msg.id}
-                                    className={`flex items-center gap-3 transition-all ${isMe ? 'flex-row-reverse' : 'flex-row'
-                                        } ${isSelectionMode ? 'cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 rounded-lg p-1' : ''
+                                    className={`flex items-center gap-3 transition-all p-1 rounded-lg ${isMe ? 'flex-row-reverse' : 'flex-row'
+                                        } ${isSelectionMode ? 'cursor-pointer hover:bg-black/5 dark:hover:bg-white/5' : ''
                                         }`}
                                     onClick={() => isSelectionMode && toggleSelection(msg.id)}
+                                    // Touch and Mouse events wrapper
+                                    onTouchStart={() => handleTouchStart(msg.id)}
+                                    onTouchEnd={clearLongPress}
+                                    onTouchMove={clearLongPress}
+                                    onMouseDown={() => handleTouchStart(msg.id)}
+                                    onMouseUp={clearLongPress}
+                                    onMouseLeave={clearLongPress}
+                                    onContextMenu={(e) => {
+                                        if (!isSelectionMode) {
+                                            e.preventDefault();
+                                        }
+                                    }}
                                 >
-                                    {isSelectionMode && (
+                                    {/* Selection Checkbox */}
+                                    <div className={`overflow-hidden transition-all duration-300 flex items-center justify-center ${isSelectionMode ? 'w-5 opacity-100' : 'w-0 opacity-0'
+                                        }`}>
                                         <div className={`shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${isSelected ? 'bg-blue-600 border-blue-600' : 'border-gray-400'
                                             }`}>
                                             {isSelected && <span className="text-white text-[10px]">✓</span>}
                                         </div>
-                                    )}
-
-                                    <div className={`max-w-[80%] px-4 py-2 shadow-sm relative transition-transform ${isSelected ? 'scale-95' : 'scale-100'
-                                        } ${isMe
-                                            ? 'bg-blue-600 text-white rounded-2xl rounded-tr-sm'
-                                            : 'bg-travel-card text-travel-text border border-travel-border rounded-2xl rounded-tl-sm'
-                                        }`}>
-                                        {!isMe && activeChat.type === "GROUP" && (
-                                            <p className="text-[10px] font-bold text-blue-400 mb-0.5">
-                                                {msg.sender.name}
-                                            </p>
-                                        )}
-
-                                        <p
-                                            className="text-sm wrap-break-word"
-                                            dangerouslySetInnerHTML={{
-                                                __html: DOMPurify.sanitize(msg.content)
-                                            }}
-                                        />
-
-                                        <div className="flex items-center justify-end gap-1 mt-1">
-                                            <span className={`text-[10px] ${isMe ? 'text-blue-200' : 'text-travel-text-muted'
-                                                }`}>
-                                                {formatLocalTime(msg.createdAt)}
-                                            </span>
-
-                                            {isMe && !isSelectionMode && (
-                                                <span className="text-xs">
-                                                    {msg.status === "PENDING" && <span className="text-blue-200">🕒</span>}
-                                                    {msg.status === "SENT" && <span className="text-blue-200">✓</span>}
-                                                    {msg.status === "DELIVERED" && <span className="text-blue-200">✓✓</span>}
-                                                    {msg.status === "READ" && <span className="text-white font-bold">✓✓</span>}
-                                                </span>
-                                            )}
-                                        </div>
                                     </div>
+
+                                    {/* ✅ FIX: Moved the deleted message UI inside the main wrapper so it's selectable */}
+                                    {msg.isDeletedForEveryone ? (
+                                        <div className={`max-w-[75%] px-4 py-2 shadow-sm rounded-2xl bg-travel-card border border-travel-border text-travel-text-muted italic text-sm transition-transform ${isSelected ? 'scale-95' : 'scale-100'}`}>
+                                            🚫 This message was deleted
+                                        </div>
+                                    ) : (
+                                        <div className={`max-w-[80%] px-4 py-2 shadow-sm relative transition-transform ${isSelected ? 'scale-95' : 'scale-100'
+                                            } ${isMe
+                                                ? 'bg-blue-600 text-white rounded-2xl rounded-tr-sm'
+                                                : 'bg-travel-card text-travel-text border border-travel-border rounded-2xl rounded-tl-sm'
+                                            }`}>
+                                            {!isMe && activeChat.type === "GROUP" && (
+                                                <p className="text-[10px] font-bold text-blue-400 mb-0.5">
+                                                    {msg.sender.name}
+                                                </p>
+                                            )}
+
+                                            <p
+                                                className="text-sm wrap-break-word"
+                                                dangerouslySetInnerHTML={{
+                                                    __html: DOMPurify.sanitize(msg.content)
+                                                }}
+                                            />
+
+                                            <div className="flex items-center justify-end gap-1 mt-1">
+                                                <span className={`text-[10px] ${isMe ? 'text-blue-200' : 'text-travel-text-muted'
+                                                    }`}>
+                                                    {formatLocalTime(msg.createdAt)}
+                                                </span>
+
+                                                {isMe && !isSelectionMode && (
+                                                    <span className="text-xs">
+                                                        {msg.status === "PENDING" && <span className="text-blue-200">🕒</span>}
+                                                        {msg.status === "SENT" && <span className="text-blue-200">✓</span>}
+                                                        {msg.status === "DELIVERED" && <span className="text-blue-200">✓✓</span>}
+                                                        {msg.status === "READ" && <span className="text-white font-bold">✓✓</span>}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             );
                         })
@@ -417,14 +483,12 @@ export default function ChatWindow() {
                 <div ref={messagesEndRef} />
             </div>
 
-            {/* Typing Indicator */}
             {typingUsers.length > 0 && !isSelectionMode && (
                 <div className="px-4 py-1 bg-travel-card/50 text-xs text-travel-text-muted italic shrink-0">
                     {typingUsers.map(u => u.name).join(", ")} {typingUsers.length === 1 ? 'is' : 'are'} typing...
                 </div>
             )}
 
-            {/* ✅ Floating Scroll-to-Bottom Button */}
             {showScrollDown && (
                 <button
                     onClick={handleScrollToBottom}
@@ -437,7 +501,6 @@ export default function ChatWindow() {
                 </button>
             )}
 
-            {/* ✅ Input Box: flex-none locks it to the bottom */}
             {!isSelectionMode && (
                 <div className="flex-none p-3 bg-travel-card border-t border-travel-border w-full">
                     <form onSubmit={handleSend} className="flex gap-2">
