@@ -47,7 +47,7 @@ export default function ChatSidebar() {
                     </div>
 
                     <h3 className="text-lg font-semibold text-travel-text mb-2">No Buddies Yet</h3>
-                    <p className="text-sm text-travel-text-muted mb-6 max-w-[200px] mx-auto">
+                    <p className="text-sm text-travel-text-muted mb-6 w-52 mx-auto">
                         You don&apos;t have any active chats. Join a trip or accept requests to start messaging!
                     </p>
 

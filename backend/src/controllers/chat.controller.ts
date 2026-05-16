@@ -6,9 +6,6 @@ import { Message } from "../entities/Message";
 import { In } from "typeorm"; // Make sure to add this import!
 export class ChatController {
 
-
-    // ... inside ChatController ...
-
     static async getMyConversations(req: Request, res: Response): Promise<any> {
         try {
             const userId = req.body.user.userId;
@@ -19,20 +16,15 @@ export class ChatController {
                 where: {
                     participants: { id: userId }
                 },
-                select: ["id"] // Only fetch the ID to save memory
+                select: ["id"]
             });
 
-            // If user has no chats, return empty array early
             if (userConversations.length === 0) {
                 return res.status(200).json([]);
             }
 
-            // Extract just the numbers into an array (e.g., [1, 5, 12])
             const conversationIds = userConversations.map(c => c.id);
 
-            // STEP 2: Fetch the full conversations using those IDs
-            // Because we are not filtering the participants in the 'where' clause here,
-            // TypeORM will return ALL participants (both you and your buddy).
             const conversations = await conversationRepo.find({
                 where: {
                     id: In(conversationIds)
@@ -57,7 +49,6 @@ export class ChatController {
             const conversationRepo = AppDataSource.getRepository(Conversation);
             const messageRepo = AppDataSource.getRepository(Message);
 
-            // Security Check
             const conversation = await conversationRepo.findOne({
                 where: { id: Number(conversationId), participants: { id: userId } }
             });
@@ -74,15 +65,13 @@ export class ChatController {
                 })
                 .orderBy("message.createdAt", "DESC")
                 .limit(Number(limit));
-
-            // If 'before' timestamp is provided, fetch older messages
+\
             if (before) {
                 queryBuilder.andWhere("message.createdAt < :before", { before });
             }
 
             const messages = await queryBuilder.getMany();
 
-            // Return in ascending order (oldest first)
             return res.status(200).json(messages.reverse());
         } catch (error) {
             console.error(error);
@@ -107,12 +96,12 @@ export class ChatController {
             const conversationRepo = AppDataSource.getRepository(Conversation);
             const messageRepo = AppDataSource.getRepository(Message);
 
-            // Security Check
-            const conversation = await conversationRepo.findOne({
-                where: { id: Number(conversationId), participants: { id: userId } }
+            const conversationExists = await conversationRepo.findOne({
+                where: { id: Number(conversationId), participants: { id: userId } },
+                select: ["id"] // Optimization: Only fetch the ID
             });
 
-            if (!conversation) {
+            if (!conversationExists) {
                 return res.status(403).json({ message: "Access denied" });
             }
 
@@ -126,9 +115,9 @@ export class ChatController {
             });
 
             await messageRepo.save(newMessage);
-
-            conversation.lastMessageAt = new Date();
-            await conversationRepo.save(conversation);
+            await conversationRepo.update(Number(conversationId), {
+                lastMessageAt: new Date()
+            });
 
             const savedMessage = await messageRepo.findOne({
                 where: { id: newMessage.id },
