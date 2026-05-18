@@ -61,7 +61,10 @@ interface ChatStore {
     setMessagesDeleted: (messageId: number, type?: "ME" | "EVERYONE") => void;
     updateMessageStatus: (messageIds: (number | string)[], status: "READ" | "DELIVERED") => void;
     freezeConversation: (conversationId: number) => void;
-    unfreezeConversation: (conversationId: number) => void; // 👈 NEW Action
+    unfreezeConversation: (conversationId: number) => void;
+
+    bumpConversationToTop: (conversationId: number, timestamp?: string) => void;
+    clearConversation: (conversationId: number) => Promise<void>;
 }
 
 export const useChatStore = create<ChatStore>((set, get) => ({
@@ -175,8 +178,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
                 conversationId,
                 message: savedMessage
             });
-
-            get().fetchConversations();
+            get().bumpConversationToTop(conversationId, savedMessage.createdAt);
         } catch (error) {
             console.error("Failed to send message:", error);
             set((state) => ({
@@ -194,7 +196,6 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     deleteMessage: async (conversationId, messageId, type, myUserId) => {
         const previousMessages = get().messages;
 
-        // Optimistic UI Update
         set((state) => ({
             messages: state.messages.map((msg) => {
                 if (String(msg.id) === String(messageId)) {
@@ -236,13 +237,16 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         }
     },
 
-    setMessagesDeleted: (messageId) => {
+    setMessagesDeleted: (messageId, type = "EVERYONE") => {
         set((state) => ({
-            messages: state.messages.map(m =>
-                String(m.id) === String(messageId)
-                    ? { ...m, isDeletedForEveryone: true, content: "🚫 This message was deleted" }
-                    : m
-            )
+            messages: state.messages.map(m => {
+                if (String(m.id) === String(messageId)) {
+                    if (type === "EVERYONE") {
+                        return { ...m, isDeletedForEveryone: true, content: "🚫 This message was deleted" };
+                    }
+                }
+                return m;
+            })
         }));
     },
 
@@ -270,5 +274,32 @@ export const useChatStore = create<ChatStore>((set, get) => ({
                 c.id === conversationId ? { ...c, isActive: true } : c
             )
         }));
+    },
+
+    bumpConversationToTop: (conversationId, timestamp = new Date().toISOString()) => {
+        set((state) => {
+            const index = state.conversations.findIndex(c => c.id === conversationId);
+            if (index === -1) return state;
+
+            const newConversations = [...state.conversations];
+            const [bumpedConv] = newConversations.splice(index, 1);
+            bumpedConv.lastMessageAt = timestamp;
+
+            return {
+                conversations: [bumpedConv, ...newConversations]
+            };
+        });
+    },
+
+    clearConversation: async (conversationId) => {
+        try {
+            set({ messages: [] });
+
+            await axiosAuth.delete(`/api/conversations/${conversationId}/clear`);
+        } catch (error) {
+            console.error("Failed to clear conversation", error);
+            alert("Failed to clear conversation");
+            get().fetchMessages(conversationId);
+        }
     }
 }));

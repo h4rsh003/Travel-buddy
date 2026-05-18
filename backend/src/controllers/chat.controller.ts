@@ -2,8 +2,8 @@ import { Request, Response } from "express";
 import { AppDataSource } from "../config/data-source";
 import { Conversation } from "../entities/Conversation";
 import { Message } from "../entities/Message";
+import { In } from "typeorm";
 
-import { In } from "typeorm"; // Make sure to add this import!
 export class ChatController {
 
     static async getMyConversations(req: Request, res: Response): Promise<any> {
@@ -11,7 +11,6 @@ export class ChatController {
             const userId = req.body.user.userId;
             const conversationRepo = AppDataSource.getRepository(Conversation);
 
-            // STEP 1: Find the IDs of conversations this user belongs to
             const userConversations = await conversationRepo.find({
                 where: {
                     participants: { id: userId }
@@ -65,6 +64,7 @@ export class ChatController {
                 })
                 .orderBy("message.createdAt", "DESC")
                 .limit(Number(limit));
+
             if (before) {
                 queryBuilder.andWhere("message.createdAt < :before", { before });
             }
@@ -97,11 +97,14 @@ export class ChatController {
 
             const conversationExists = await conversationRepo.findOne({
                 where: { id: Number(conversationId), participants: { id: userId } },
-                select: ["id"] // Optimization: Only fetch the ID
+                select: ["id", "isActive"]
             });
 
             if (!conversationExists) {
                 return res.status(403).json({ message: "Access denied" });
+            }
+            if (conversationExists.isActive === false) {
+                return res.status(403).json({ message: "This conversation is frozen. You cannot send messages." });
             }
 
             const sanitizedContent = content.trim();
@@ -138,7 +141,6 @@ export class ChatController {
 
             const messageRepo = AppDataSource.getRepository(Message);
 
-            // Fetch the message
             const message = await messageRepo.findOne({
                 where: {
                     id: Number(messageId),
@@ -170,12 +172,10 @@ export class ChatController {
                 }
 
             } else if (type === "ME") {
-                if (!message.deletedBy) {
-                    message.deletedBy = [];
-                }
+                const currentDeletedBy = message.deletedBy || [];
 
-                if (!message.deletedBy.includes(userId)) {
-                    message.deletedBy.push(userId);
+                if (!currentDeletedBy.includes(userId)) {
+                    message.deletedBy = [...currentDeletedBy, userId];
                     await messageRepo.save(message);
                 }
             } else {
@@ -185,6 +185,41 @@ export class ChatController {
             return res.status(200).json(message);
         } catch (error) {
             console.error("Delete Message Error:", error);
+            return res.status(500).json({ message: "Internal Server Error" });
+        }
+    }
+
+    static async clearConversation(req: Request, res: Response): Promise<any> {
+        try {
+            const { userId } = req.body.user;
+            const { conversationId } = req.params;
+
+            const messageRepo = AppDataSource.getRepository(Message);
+
+            // Fetch all messages in this conversation where the user hasn't already deleted them
+            const messages = await messageRepo
+                .createQueryBuilder("message")
+                .where("message.conversationId = :conversationId", { conversationId: Number(conversationId) })
+                .getMany();
+
+            if (messages.length === 0) {
+                return res.status(200).json({ message: "Conversation already clear" });
+            }
+
+            // Update all messages to include this user in deletedBy
+            const updatedMessages = messages.map(msg => {
+                const currentDeletedBy = msg.deletedBy || [];
+                if (!currentDeletedBy.includes(userId)) {
+                    msg.deletedBy = [...currentDeletedBy, userId];
+                }
+                return msg;
+            });
+
+            await messageRepo.save(updatedMessages);
+
+            return res.status(200).json({ message: "Conversation cleared successfully" });
+        } catch (error) {
+            console.error("Clear Conversation Error:", error);
             return res.status(500).json({ message: "Internal Server Error" });
         }
     }
