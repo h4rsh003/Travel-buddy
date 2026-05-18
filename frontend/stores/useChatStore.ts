@@ -30,6 +30,7 @@ export interface Message {
     createdAt: string;
     isDeletedForEveryone?: boolean;
     deletedBy?: number[];
+    isSystemMessage?: boolean;
 }
 
 export interface Conversation {
@@ -38,6 +39,7 @@ export interface Conversation {
     participants: ChatUser[];
     lastMessageAt: string;
     trip?: ChatTrip;
+    isActive?: boolean;
 }
 
 interface ChatStore {
@@ -58,6 +60,8 @@ interface ChatStore {
     deleteMessage: (conversationId: number, messageId: number | string, type: "ME" | "EVERYONE", myUserId: number) => Promise<void>;
     setMessagesDeleted: (messageId: number, type?: "ME" | "EVERYONE") => void;
     updateMessageStatus: (messageIds: (number | string)[], status: "READ" | "DELIVERED") => void;
+    freezeConversation: (conversationId: number) => void;
+    unfreezeConversation: (conversationId: number) => void; // 👈 NEW Action
 }
 
 export const useChatStore = create<ChatStore>((set, get) => ({
@@ -146,7 +150,8 @@ export const useChatStore = create<ChatStore>((set, get) => ({
             status: "PENDING",
             createdAt: new Date().toISOString(),
             deletedBy: [],
-            isDeletedForEveryone: false
+            isDeletedForEveryone: false,
+            isSystemMessage: false
         };
 
         set((state) => ({ messages: [...state.messages, optimisticMessage] }));
@@ -247,6 +252,22 @@ export const useChatStore = create<ChatStore>((set, get) => ({
                 messageIds.some(id => String(id) === String(msg.id))
                     ? { ...msg, status }
                     : msg
+            )
+        }));
+    },
+
+    freezeConversation: (conversationId) => {
+        set((state) => ({
+            conversations: state.conversations.map(c =>
+                c.id === conversationId ? { ...c, isActive: false } : c
+            )
+        }));
+    },
+
+    unfreezeConversation: (conversationId) => {
+        set((state) => ({
+            conversations: state.conversations.map(c =>
+                c.id === conversationId ? { ...c, isActive: true } : c
             )
         }));
     }

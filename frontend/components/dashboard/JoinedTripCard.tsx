@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FiCalendar, FiMail } from "react-icons/fi";
+import { FiCalendar, FiMessageCircle } from "react-icons/fi";
 import { JoinedTrip } from "@/types/dashboard";
 
 export default function JoinedTripCard({ request }: { request: JoinedTrip }) {
@@ -54,15 +54,13 @@ export default function JoinedTripCard({ request }: { request: JoinedTrip }) {
                     View Trip
                 </Link>
 
-                {request.status?.toLowerCase() === 'accepted' && request.trip.user.email && (
-                    <a
-                        href={`mailto:${request.trip.user.email}`}
-                        className="p-2.5 bg-travel-accent text-white rounded-lg hover:bg-travel-accent-hover transition-colors shadow-sm hover:shadow-md"
-                        title={`Email ${request.trip.user.name}`}
-                        aria-label={`Email ${request.trip.user.name}`}
+                {request.status === 'accepted' && (
+                    <Link
+                        href="/messages"
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 border border-blue-200 rounded-md font-medium hover:bg-blue-100 transition text-sm w-full justify-center sm:w-auto"
                     >
-                        <FiMail size={20} />
-                    </a>
+                        <FiMessageCircle /> Message Host
+                    </Link>
                 )}
             </div>
         </div>

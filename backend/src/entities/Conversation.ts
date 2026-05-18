@@ -46,4 +46,7 @@ export class Conversation {
 
     @UpdateDateColumn()
     updatedAt: Date;
+
+    @Column({ default: true })
+    isActive: boolean;
 }

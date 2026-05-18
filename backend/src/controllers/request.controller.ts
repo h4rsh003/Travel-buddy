@@ -4,6 +4,7 @@ import { JoinRequest, RequestStatus } from "../entities/JoinRequest";
 import { Trip } from "../entities/Trip";
 import { Conversation } from "../entities/Conversation";
 import { User } from "../entities/User";
+import { Message } from "../entities/Message";
 
 export class RequestController {
 
@@ -15,7 +16,6 @@ export class RequestController {
       const requestRepo = AppDataSource.getRepository(JoinRequest);
       const tripRepo = AppDataSource.getRepository(Trip);
 
-      // 1. Check if Trip exists
       const trip = await tripRepo.findOne({ where: { id: tripId }, relations: ["user"] });
       if (!trip) return res.status(404).json({ message: "Trip not found" });
 
@@ -59,6 +59,7 @@ export class RequestController {
       const requestRepo = AppDataSource.getRepository(JoinRequest);
       const conversationRepo = AppDataSource.getRepository(Conversation);
       const userRepo = AppDataSource.getRepository(User);
+      const messageRepo = AppDataSource.getRepository(Message);
 
       const request = await requestRepo.findOne({
         where: { id: Number(requestId) },
@@ -74,11 +75,11 @@ export class RequestController {
       // Update Status
       request.status = normalizedStatus === "accepted" ? RequestStatus.ACCEPTED : RequestStatus.REJECTED;
       await requestRepo.save(request);
+
       if (normalizedStatus === "accepted") {
         const guestUser = await userRepo.findOne({ where: { id: request.userId } });
 
         if (guestUser) {
-
           const existingConversation = await conversationRepo
             .createQueryBuilder("conversation")
             .innerJoin("conversation.participants", "p1", "p1.id = :hostId", { hostId: request.trip.user.id })
@@ -90,9 +91,30 @@ export class RequestController {
             const newConversation = conversationRepo.create({
               type: "DIRECT",
               trip: request.trip,
-              participants: [guestUser, request.trip.user] // [Guest, Host]
+              participants: [guestUser, request.trip.user], // [Guest, Host]
+              isActive: true
             });
             await conversationRepo.save(newConversation);
+          } else if (existingConversation.isActive === false) {
+
+            existingConversation.isActive = true;
+            await conversationRepo.save(existingConversation);
+
+            const systemMessage = messageRepo.create({
+              content: `${guestUser.name} has rejoined the trip.`,
+              isSystemMessage: true,
+              conversation: { id: existingConversation.id },
+              sender: { id: guestUser.id },
+              status: "READ"
+            });
+            const savedSysMsg = await messageRepo.save(systemMessage);
+
+            const io = req.app.get("socketio");
+            if (io) {
+              const roomName = `room_${existingConversation.id}`;
+              io.to(roomName).emit("receive_message", savedSysMsg);
+              io.to(roomName).emit("chat_unfrozen", { conversationId: existingConversation.id });
+            }
           }
         }
       }
@@ -111,14 +133,55 @@ export class RequestController {
       const { tripId } = req.params;
 
       const requestRepo = AppDataSource.getRepository(JoinRequest);
+      const conversationRepo = AppDataSource.getRepository(Conversation);
+      const messageRepo = AppDataSource.getRepository(Message);
+      const userRepo = AppDataSource.getRepository(User);
+      const currentUser = await userRepo.findOne({ where: { id: userId } });
+
       const request = await requestRepo.findOne({
-        where: { userId, tripId: Number(tripId) }
+        where: { userId, tripId: Number(tripId) },
+        relations: ["trip", "trip.user"]
       });
 
-      if (!request) {
+      if (!request || !currentUser) {
         return res.status(404).json({ message: "Request not found" });
       }
 
+      if (request.status === RequestStatus.ACCEPTED) {
+
+        const conversation = await conversationRepo
+          .createQueryBuilder("conversation")
+          .innerJoin("conversation.participants", "p1", "p1.id = :hostId", { hostId: request.trip.user.id })
+          .innerJoin("conversation.participants", "p2", "p2.id = :guestId", { guestId: userId })
+          .where("conversation.tripId = :tripId", { tripId: request.trip.id })
+          .getOne();
+
+        if (conversation) {
+
+          conversation.isActive = false;
+          await conversationRepo.save(conversation);
+
+          const systemMessage = messageRepo.create({
+            content: `${currentUser.name} has left the trip.`,
+            isSystemMessage: true,
+            conversation: { id: conversation.id },
+            sender: { id: userId },
+            status: "READ"
+          });
+          const savedSysMsg = await messageRepo.save(systemMessage);
+
+          const io = req.app.get("socketio");
+          if (io) {
+            const roomName = `room_${conversation.id}`;
+
+            io.to(roomName).emit("receive_message", savedSysMsg);
+
+            io.to(roomName).emit("chat_frozen", { conversationId: conversation.id });
+          }
+        }
+      }
+
+      // Finally, delete the request from the DB
       await requestRepo.remove(request);
 
       return res.status(200).json({ message: "Request withdrawn successfully" });

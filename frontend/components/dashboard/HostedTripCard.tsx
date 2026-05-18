@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Link from "next/link";
-import { FiCalendar, FiTrash2, FiUsers, FiChevronDown, FiMail, FiCheck, FiX } from "react-icons/fi";
+import { FiCalendar, FiTrash2, FiUsers, FiChevronDown, FiMail, FiCheck, FiX, FiMessageCircle } from "react-icons/fi";
 import { Trip, JoinRequest } from "@/types/dashboard";
 
 interface HostedTripCardProps {
@@ -11,6 +11,8 @@ interface HostedTripCardProps {
 
 export default function HostedTripCard({ trip, onDelete, onAction }: HostedTripCardProps) {
     const [isExpanded, setIsExpanded] = useState(false);
+
+    const hasAcceptedBuddies = trip.joinRequests?.some(req => req.status === 'accepted');
 
     return (
         <div className="bg-travel-card rounded-xl shadow-sm border border-travel-border overflow-hidden transition hover:shadow-md mb-4">
@@ -23,10 +25,22 @@ export default function HostedTripCard({ trip, onDelete, onAction }: HostedTripC
                         <FiCalendar className="text-travel-accent shrink-0" />
                         {new Date(trip.startDate).toLocaleDateString("en-IN")}
                     </p>
-                    <div className="flex gap-3">
+
+                    <div className="flex flex-wrap gap-3">
                         <Link href={`/trips/${trip.id}`} className="flex-1 md:flex-none text-center px-4 py-2 bg-travel-accent/10 text-travel-accent text-xs font-bold uppercase rounded-lg hover:bg-travel-accent/20 cursor-pointer transition">
                             View Details
                         </Link>
+
+                        {hasAcceptedBuddies && (
+                            <Link
+                                href="/messages"
+                                className="flex-1 md:flex-none flex items-center justify-center gap-1.5 px-4 py-2 bg-blue-50 text-blue-600 border border-blue-200 text-xs font-bold uppercase rounded-lg hover:bg-blue-100 cursor-pointer transition shadow-sm"
+                                title="Open Chats"
+                            >
+                                <FiMessageCircle size={14} /> Chats
+                            </Link>
+                        )}
+
                         <button
                             onClick={onDelete}
                             className="p-2 text-red-500 hover:bg-red-50 rounded-lg cursor-pointer transition"
