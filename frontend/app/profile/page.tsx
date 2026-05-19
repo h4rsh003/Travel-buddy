@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
@@ -124,13 +124,7 @@ export default function ProfilePage() {
                             </button>
 
 
-                            {/* Logout Button */}
-                            <button
-                                onClick={() => signOut({ callbackUrl: "/" })}
-                                className="px-4 py-2 bg-red-50 text-red-600 cursor-pointer rounded-lg font-medium text-sm hover:bg-red-100 transition border border-red-200"
-                            >
-                                Logout
-                            </button>
+
                         </div>
                     </div>
 
