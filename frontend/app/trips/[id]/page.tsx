@@ -196,7 +196,7 @@ export default function TripDetailsPage() {
 
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
-              <div className="h-14 w-14 rounded-full bg-travel-bg border-2 border-travel-card shadow-sm flex items-center justify-center text-xl font-bold text-travel-text">
+              <div className="h-12 w-12 rounded-full bg-linear-to-br from-travel-accent to-orange-500 text-white flex items-center justify-center text-sm font-bold shadow-sm ring-2 ring-white dark:ring-travel-card">
                 {trip.user.name.charAt(0)}
               </div>
               <div>

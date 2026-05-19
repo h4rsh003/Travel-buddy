@@ -14,7 +14,7 @@ export default function Navbar() {
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [prevPathname, setPrevPathname] = useState(pathname);
-  const [isScrolled, setIsScrolled] = useState(false); // 🆕 Scroll state
+  const [isScrolled, setIsScrolled] = useState(false);
 
   if (pathname !== prevPathname) {
     setPrevPathname(pathname);
@@ -23,7 +23,6 @@ export default function Navbar() {
 
   const isActive = (path: string) => pathname === path;
 
-  // 🆕 Scroll listener
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll);
@@ -48,7 +47,6 @@ export default function Navbar() {
       : "text-travel-text hover:bg-travel-accent/5 hover:text-travel-accent"
     }`;
 
-  // 🆕 User initials helper
   const getUserInitials = () => {
     const name = session?.user?.name;
     if (!name) return "T";
@@ -59,23 +57,20 @@ export default function Navbar() {
 
   return (
     <>
-      {/* 🆕 Shadow on scroll */}
       <nav className={`sticky top-0 z-50 w-full bg-travel-bg/90 backdrop-blur-md border-b border-travel-border transition-all duration-300 ${isScrolled ? "shadow-lg shadow-black/5" : ""
         }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
 
-            {/* Logo */}
             <div className="shrink-0 flex items-center">
               <Link href="/" className="flex items-center gap-2 group">
                 <span className="text-2xl group-hover:scale-110 transition-transform duration-300">✈️</span>
-                <span className="font-bold text-xl tracking-tight bg-gradient-to-r from-travel-accent to-orange-500 bg-clip-text text-transparent">
+                <span className="font-bold text-xl tracking-tight bg-linear-to-r from-travel-accent to-orange-500 bg-clip-text text-transparent">
                   Travel Buddy
                 </span>
               </Link>
             </div>
 
-            {/* Desktop Nav */}
             <div className="hidden md:flex items-center gap-4 lg:gap-6">
               <Link href="/" className={navLinkClass(isActive("/"))}>
                 <svg className="w-4 h-4 mb-0.5 hidden lg:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -99,7 +94,7 @@ export default function Navbar() {
                 <>
                   <Link
                     href="/trips/create"
-                    className={`inline-flex items-center gap-1 leading-none px-4 py-1.5 rounded-full text-sm font-bold text-white transition-all hover:scale-105 shadow-md hover:shadow-lg bg-gradient-to-r ${isActive("/trips/create")
+                    className={`inline-flex items-center gap-1 leading-none px-4 py-1.5 rounded-full text-sm font-bold text-white transition-all hover:scale-105 shadow-md hover:shadow-lg bg-linear-to-r ${isActive("/trips/create")
                       ? "from-travel-accent-hover to-orange-600 ring-2 ring-offset-2 ring-travel-accent"
                       : "from-travel-accent to-orange-500"
                       }`}
@@ -108,7 +103,6 @@ export default function Navbar() {
                     <span>Create Trip</span>
                   </Link>
 
-                  {/* Messages Icon */}
                   <Link
                     href="/messages"
                     className={`relative p-2 transition-colors rounded-full ${pathname.startsWith("/messages")
@@ -124,11 +118,10 @@ export default function Navbar() {
 
                   <ThemeToggle />
 
-                  {/* 🆕 User Avatar Dropdown with Initials */}
                   <div className="relative group ml-1">
                     <button
                       aria-label="User menu"
-                      className="flex items-center justify-center w-9 h-9 rounded-full border-2 border-travel-border group-hover:border-travel-accent transition-all duration-200 overflow-hidden focus:outline-none bg-gradient-to-br from-travel-accent to-orange-500"
+                      className="flex items-center justify-center w-9 h-9 rounded-full border-2 border-travel-border group-hover:border-travel-accent transition-all duration-200 overflow-hidden focus:outline-none bg-linear-to-br from-travel-accent to-orange-500"
                     >
                       <span className="text-white font-bold text-sm leading-none">
                         {getUserInitials()}
@@ -172,20 +165,19 @@ export default function Navbar() {
                   <Link href="/auth/login" className="text-sm px-4 py-2 rounded-full font-medium text-travel-text hover:bg-travel-accent/5 hover:text-travel-accent transition-colors">
                     Log in
                   </Link>
-                  <Link href="/auth/register" className="px-5 py-2 rounded-full text-sm font-bold text-white bg-gradient-to-r from-travel-accent to-orange-500 hover:from-travel-accent-hover hover:to-orange-600 transition-all hover:scale-105 shadow-md">
+                  <Link href="/auth/register" className="px-5 py-2 rounded-full text-sm font-bold text-white bg-linear-to-r from-travel-accent to-orange-500 hover:from-travel-accent-hover hover:to-orange-600 transition-all hover:scale-105 shadow-md">
                     Sign Up
                   </Link>
                 </>
               )}
             </div>
 
-            <div className="flex md:hidden items-center gap-2">
+            <div className="flex md:hidden items-center gap-3">
               {session ? (
                 <>
-                  {/* Revert: Original Create Trip button */}
                   <Link
                     href="/trips/create"
-                    className="text-white bg-gradient-to-r from-travel-accent to-orange-500 px-4 py-1.5 rounded-full text-xs font-bold shadow-md hover:scale-105 transition-transform"
+                    className="text-white bg-linear-to-r from-travel-accent to-orange-500 px-4 py-1.5 rounded-full text-xs font-bold shadow-md hover:scale-105 transition-transform"
                   >
                     + Plan
                   </Link>
@@ -221,14 +213,12 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile Overlay */}
       <div
         className={`md:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 transition-opacity duration-300 ${isSidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         onClick={() => setIsSidebarOpen(false)}
       />
 
-      {/* Mobile Sidebar */}
       <div className={`md:hidden fixed inset-y-0 right-0 w-[80vw] max-w-sm bg-travel-bg border-l border-travel-border z-50 transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? "translate-x-0" : "translate-x-full"
         } flex flex-col shadow-2xl`}>
 
@@ -248,9 +238,8 @@ export default function Navbar() {
         <div className="flex flex-col p-4 gap-3 flex-1 overflow-y-auto bg-travel-bg">
           {session ? (
             <>
-              {/* 🆕 User Info Card with Initials Avatar */}
               <div className="flex items-center gap-4 p-3 bg-travel-card border border-travel-border rounded-2xl mb-2">
-                <div className="shrink-0 w-12 h-12 rounded-full bg-gradient-to-br from-travel-accent to-orange-500 flex items-center justify-center">
+                <div className="shrink-0 w-12 h-12 rounded-full bg-linear-to-br from-travel-accent to-orange-500 flex items-center justify-center">
                   <span className="text-white font-bold text-lg leading-none">
                     {getUserInitials()}
                   </span>

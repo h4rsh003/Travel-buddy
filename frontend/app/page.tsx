@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { FiMapPin, FiCalendar, FiSearch, FiActivity, FiCheckCircle } from "react-icons/fi";
 import { useTripStore } from "@/stores/tripStore";
 
 export default function Home() {
@@ -30,7 +29,6 @@ export default function Home() {
     });
   };
 
-  // Helper for UI Badges on cards
   const getTripStatus = (start: string, end: string) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -64,7 +62,10 @@ export default function Home() {
 
           {/* Search Bar */}
           <div className="max-w-lg mx-auto md:mx-0 bg-travel-bg p-2 rounded-full border border-travel-border flex items-center shadow-lg focus-within:ring-2 focus-within:ring-travel-accent transition-all transform hover:scale-[1.01]">
-            <FiSearch className="ml-4 text-xl text-travel-text-muted shrink-0" />
+            {/* Search Icon (inline SVG — no react-icons dependency) */}
+            <svg className="ml-4 w-5 h-5 text-travel-text-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
             <input
               type="text"
               placeholder="Search destination (e.g. Goa, Paris)..."
@@ -83,15 +84,13 @@ export default function Home() {
       {/* FEED SECTION */}
       <div className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
 
-        {/* Header with Filters */}
         <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
           <div>
             <h2 className="text-3xl font-bold text-travel-text">Latest Trips</h2>
             <p className="text-travel-text-muted mt-1">Discover where people are going next.</p>
           </div>
 
-          {/* Filter Buttons */}
-          <div className="flex bg-travel-card border border-travel-border rounded-lg p-1 w-full md:w-auto overflow-x-auto no-scrollbar">
+          <div className="flex bg-travel-card border border-travel-border rounded-lg p-1 w-full md:w-auto overflow-x-auto">
             {(['ALL', 'UPCOMING', 'STARTED', 'COMPLETED'] as const).map((f) => (
               <button
                 key={f}
@@ -123,7 +122,10 @@ export default function Home() {
                   ? "Be the pioneer and post the first journey of the season!"
                   : `No ${filter.toLowerCase()} trips available right now.`}
             </p>
-            <Link href="/trips/create" className="bg-travel-accent text-white px-8 py-3 rounded-full font-bold hover:bg-travel-accent-hover transition shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform duration-200">
+            <Link
+              href="/trips/create"
+              className="bg-travel-accent text-white px-8 py-3 rounded-full font-bold hover:bg-travel-accent-hover transition shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform duration-200"
+            >
               Post a Trip
             </Link>
           </div>
@@ -133,27 +135,35 @@ export default function Home() {
               const status = getTripStatus(trip.startDate, trip.endDate);
 
               return (
-                <div key={trip.id} className="group flex flex-col bg-travel-card rounded-2xl shadow-sm border border-travel-border hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden h-full relative">
-
-                  {/* Status Badges */}
+                <div
+                  key={trip.id}
+                  className="group flex flex-col bg-travel-card rounded-2xl shadow-sm border border-travel-border hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden h-full relative"
+                >
+                  {/* Status Badges — inline SVG icons */}
                   {status === 'STARTED' && (
                     <div className="absolute top-3 right-3 bg-blue-500 text-white text-[10px] uppercase font-bold px-2 py-1 rounded-full shadow-md flex items-center gap-1 z-20">
-                      <FiActivity /> Live
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                      Live
                     </div>
                   )}
                   {status === 'COMPLETED' && (
                     <div className="absolute top-3 right-3 bg-gray-500 text-white text-[10px] uppercase font-bold px-2 py-1 rounded-full shadow-md flex items-center gap-1 z-20">
-                      <FiCheckCircle /> Done
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                      </svg>
+                      Done
                     </div>
                   )}
 
                   {/* Card Header */}
                   <div className={`h-40 flex items-center justify-center border-b border-travel-border relative overflow-hidden ${status === 'COMPLETED'
-                    ? 'bg-gray-100 dark:bg-gray-800'
+                    ? 'bg-travel-bg'
                     : 'bg-linear-to-br from-travel-accent/20 to-orange-100 dark:from-travel-accent/10 dark:to-orange-900/20'
                     }`}>
                     <div className="absolute inset-0 bg-travel-accent/5 group-hover:bg-travel-accent/10 transition-colors"></div>
-                    <h3 className={`text-3xl font-extrabold group-hover:scale-110 transition-transform duration-500 z-10 px-4 text-center ${status === 'COMPLETED' ? 'text-gray-400' : 'text-travel-accent'
+                    <h3 className={`text-3xl font-extrabold group-hover:scale-110 transition-transform duration-500 z-10 px-4 text-center ${status === 'COMPLETED' ? 'text-travel-text-muted' : 'text-travel-accent'
                       }`}>
                       {trip.destination?.name}
                     </h3>
@@ -163,7 +173,10 @@ export default function Home() {
                   <div className="p-6 flex-1 flex flex-col">
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex items-center gap-1.5 text-travel-text-muted text-xs font-semibold bg-travel-bg px-2.5 py-1.5 rounded-lg border border-travel-border">
-                        <FiCalendar className="text-travel-accent" />
+                        {/* Calendar icon */}
+                        <svg className="w-3.5 h-3.5 text-travel-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
                         {formatDate(trip.startDate)}
                       </div>
                       <div className="text-sm font-bold text-green-600 bg-green-50 dark:bg-green-900/20 px-2.5 py-1.5 rounded-lg border border-green-100 dark:border-green-800">
@@ -172,7 +185,11 @@ export default function Home() {
                     </div>
 
                     <div className="flex items-start gap-2 mb-3">
-                      <FiMapPin className="text-travel-accent mt-1 shrink-0" />
+                      {/* Map pin icon */}
+                      <svg className="w-4 h-4 text-travel-accent mt-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
                       <h3 className="text-lg font-bold text-travel-text leading-tight group-hover:text-travel-accent transition-colors">
                         Trip to {trip.destination?.name}
                       </h3>
