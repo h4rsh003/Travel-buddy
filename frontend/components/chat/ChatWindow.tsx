@@ -6,6 +6,7 @@ import { useChatStore, Message } from "@/stores/useChatStore";
 import { socket, connectSocket } from "@/libs/socket";
 import DOMPurify from "isomorphic-dompurify";
 import { useRouter } from "next/navigation";
+import ConfirmationModal from "@/components/ConfirmationModal";
 
 const formatLocalTime = (dateString?: string) => {
     if (!dateString) return "";
@@ -55,7 +56,7 @@ export default function ChatWindow() {
         loadMoreMessages,
         updateMessageStatus,
         setMessagesDeleted,
-        bumpConversationToTop // ✅ NAYA FEATURE: Chat ko top par lane ke liye
+        bumpConversationToTop
     } = useChatStore();
 
     const [isSelectionMode, setIsSelectionMode] = useState(false);
@@ -64,6 +65,9 @@ export default function ChatWindow() {
 
     const [typingUsers, setTypingUsers] = useState<{ id: number, name: string }[]>([]);
     const [isConnected, setIsConnected] = useState(false);
+
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState<"ME" | "EVERYONE" | null>(null);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -167,7 +171,6 @@ export default function ChatWindow() {
             if (String(newMessage.sender.id) !== String(myUserId)) {
                 addMessage(newMessage);
 
-                // ✅ NAYA FEATURE: Naya message aate hi chat list me upar aa jayegi
                 if (bumpConversationToTop && activeConversationId) {
                     bumpConversationToTop(activeConversationId, newMessage.createdAt);
                 }
@@ -248,19 +251,19 @@ export default function ChatWindow() {
         setSelectedIds([]);
     };
 
-    const handleBulkDelete = (type: "ME" | "EVERYONE") => {
+    const handleOpenDeleteModal = (type: "ME" | "EVERYONE") => {
         if (selectedIds.length === 0) return;
+        setDeleteTarget(type);
+        setIsDeleteModalOpen(true);
+    };
 
-        const confirmMsg = type === "EVERYONE"
-            ? `Delete ${selectedIds.length} message(s) for everyone?`
-            : `Delete ${selectedIds.length} message(s) for yourself?`;
-
-        if (window.confirm(confirmMsg)) {
-            selectedIds.forEach(id => {
-                deleteMessage(activeConversationId!, id as number, type, myUserId);
-            });
-            cancelSelection();
-        }
+    const executeBulkDelete = () => {
+        if (selectedIds.length === 0 || !deleteTarget) return;
+        selectedIds.forEach(id => {
+            deleteMessage(activeConversationId!, id as number, deleteTarget, myUserId);
+        });
+        cancelSelection();
+        setDeleteTarget(null);
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -336,7 +339,7 @@ export default function ChatWindow() {
                             {canDeleteForEveryone ? (
                                 <>
                                     <button
-                                        onClick={() => handleBulkDelete("EVERYONE")}
+                                        onClick={() => handleOpenDeleteModal("EVERYONE")}
                                         className="flex items-center gap-1.5 text-xs sm:text-sm bg-red-600/10 text-red-600 px-3 py-1.5 rounded-full hover:bg-red-600/20 transition-colors shadow-sm font-medium border border-red-200"
                                         title="Delete for everyone in chat"
                                     >
@@ -346,7 +349,7 @@ export default function ChatWindow() {
                                         For Everyone
                                     </button>
                                     <button
-                                        onClick={() => handleBulkDelete("ME")}
+                                        onClick={() => handleOpenDeleteModal("ME")}
                                         className="flex items-center gap-1.5 text-xs sm:text-sm bg-gray-600 text-white px-3 py-1.5 rounded-full hover:bg-gray-700 transition-colors shadow-sm font-medium"
                                         title="Delete only for me"
                                     >
@@ -358,7 +361,7 @@ export default function ChatWindow() {
                                 </>
                             ) : (
                                 <button
-                                    onClick={() => handleBulkDelete("ME")}
+                                    onClick={() => handleOpenDeleteModal("ME")}
                                     disabled={selectedIds.length === 0}
                                     className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors disabled:opacity-50"
                                     title="Delete for me"
@@ -411,7 +414,6 @@ export default function ChatWindow() {
                             const isMe = String(msg.sender.id) === String(myUserId);
                             const isSelected = selectedIds.includes(msg.id);
 
-                            // ✅ NAYA FEATURE: System Message UI
                             if (msg.isSystemMessage) {
                                 return (
                                     <div key={msg.id} className="flex justify-center my-2">
@@ -541,6 +543,18 @@ export default function ChatWindow() {
                     </form>
                 </div>
             )}
+
+            <ConfirmationModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => {
+                    setIsDeleteModalOpen(false);
+                    setDeleteTarget(null);
+                }}
+                onConfirm={executeBulkDelete}
+                title="Delete Messages"
+                message={`Are you sure you want to delete ${selectedIds.length} message(s) ${deleteTarget === "EVERYONE" ? "for everyone in this chat" : "for yourself"}? This cannot be undone.`}
+                confirmText="Yes, Delete"
+            />
         </div>
     );
 }

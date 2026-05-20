@@ -7,7 +7,8 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import useAxiosAuth from "@/hooks/useAxiosAuth";
 import toast from "react-hot-toast";
-import { FiActivity, FiClock, FiTrash2, FiMessageCircle } from "react-icons/fi"; // Added Message icon
+import { FiActivity, FiClock, FiTrash2, FiMessageCircle } from "react-icons/fi";
+import ConfirmationModal from "@/components/ConfirmationModal";
 
 type TripDetails = {
   id: number;
@@ -43,8 +44,10 @@ export default function TripDetailsPage() {
   const [trip, setTrip] = useState<TripDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [requesting, setRequesting] = useState(false);
-
   const [userStatus, setUserStatus] = useState<"none" | "pending" | "accepted" | "rejected">("none");
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false); // Naya state cancel/leave ke liye
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString("en-IN", {
@@ -54,7 +57,6 @@ export default function TripDetailsPage() {
     });
   };
 
-  // Fetch Trip Data (Public - uses standard axios)
   useEffect(() => {
     const fetchTrip = async () => {
       try {
@@ -73,7 +75,6 @@ export default function TripDetailsPage() {
     if (trip && session?.user) {
       const myId = session.user.id;
       const myRequest = trip.joinRequests?.find((req) => req.userId === Number(myId));
-
       if (myRequest) {
         setUserStatus(myRequest.status);
       } else {
@@ -82,14 +83,12 @@ export default function TripDetailsPage() {
     }
   }, [trip, session]);
 
-  // 1. Handle Join Request
   const handleJoinRequest = async () => {
     if (!session) {
       toast.error("Please login to join this trip!");
       router.push("/auth/login");
       return;
     }
-
     try {
       setRequesting(true);
       await axiosAuth.post("/api/requests/send", { tripId: Number(id) });
@@ -99,7 +98,7 @@ export default function TripDetailsPage() {
       console.error(error);
       if (axios.isAxiosError(error) && error.response) {
         if (error.response.status === 409) {
-          setUserStatus("pending"); // Assuming they already requested
+          setUserStatus("pending");
           toast.error("You have already requested to join this trip.");
         } else {
           toast.error(error.response.data.message);
@@ -112,11 +111,7 @@ export default function TripDetailsPage() {
     }
   };
 
-  // 2. Handle Cancel Request / Leave Trip
-  const handleCancelRequest = async () => {
-    const actionText = userStatus === "accepted" ? "leave this trip" : "withdraw your request";
-    if (!confirm(`Are you sure you want to ${actionText}?`)) return;
-
+  const executeCancelRequest = async () => {
     try {
       setRequesting(true);
       await axiosAuth.delete(`/api/requests/${id}`);
@@ -130,10 +125,7 @@ export default function TripDetailsPage() {
     }
   };
 
-  // 3. Handle Delete Trip
-  const handleDeleteTrip = async () => {
-    if (!confirm("Are you sure you want to delete this trip? This cannot be undone.")) return;
-
+  const executeDeleteTrip = async () => {
     try {
       await axiosAuth.delete(`/api/trips/${id}`);
       toast.success("Trip Deleted Successfully.");
@@ -193,7 +185,6 @@ export default function TripDetailsPage() {
         </div>
 
         <div className="p-8">
-
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
               <div className="h-12 w-12 rounded-full bg-linear-to-br from-travel-accent to-orange-500 text-white flex items-center justify-center text-sm font-bold shadow-sm ring-2 ring-white dark:ring-travel-card">
@@ -240,7 +231,7 @@ export default function TripDetailsPage() {
                 <button disabled className="flex-1 bg-travel-bg text-travel-text-muted py-3 rounded-lg font-bold cursor-not-allowed border border-travel-border">
                   You Own This Trip
                 </button>
-                <button onClick={handleDeleteTrip} className="flex items-center justify-center gap-2 px-6 py-3 bg-red-50 text-red-600 border border-red-200 rounded-lg font-bold cursor-pointer hover:bg-red-100 transition">
+                <button onClick={() => setIsDeleteModalOpen(true)} className="flex items-center justify-center gap-2 px-6 py-3 bg-red-50 text-red-600 border border-red-200 rounded-lg font-bold cursor-pointer hover:bg-red-100 transition">
                   Delete Trip <FiTrash2 />
                 </button>
               </>
@@ -257,7 +248,11 @@ export default function TripDetailsPage() {
                 Request Declined
               </div>
             ) : userStatus === "accepted" || userStatus === "pending" ? (
-              <button onClick={handleCancelRequest} disabled={requesting} className="flex-1 bg-red-50 text-red-600 border border-red-200 py-3 cursor-pointer rounded-lg font-bold hover:bg-red-100 transition">
+              <button
+                onClick={() => setIsCancelModalOpen(true)}
+                disabled={requesting}
+                className="flex-1 bg-red-50 text-red-600 border border-red-200 py-3 cursor-pointer rounded-lg font-bold hover:bg-red-100 transition"
+              >
                 {requesting ? "Processing..." : userStatus === "accepted" ? "Leave Trip" : "Cancel Request"}
               </button>
             ) : (
@@ -272,9 +267,28 @@ export default function TripDetailsPage() {
               </Link>
             )}
           </div>
-
         </div>
       </div>
+
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={executeDeleteTrip}
+        title="Delete Trip"
+        message="Are you sure you want to delete this trip? All associated requests and chats will be permanently removed."
+        confirmText="Yes, Delete Trip"
+      />
+
+      <ConfirmationModal
+        isOpen={isCancelModalOpen}
+        onClose={() => setIsCancelModalOpen(false)}
+        onConfirm={executeCancelRequest}
+        title={userStatus === "accepted" ? "Leave Trip" : "Cancel Request"}
+        message={userStatus === "accepted"
+          ? "Are you sure you want to leave this trip? You will have to request to join again if you change your mind."
+          : "Are you sure you want to withdraw your join request?"}
+        confirmText="Yes, Proceed"
+      />
     </div>
   );
 }

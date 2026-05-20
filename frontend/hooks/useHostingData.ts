@@ -4,8 +4,6 @@ import useAxiosAuth from "@/hooks/useAxiosAuth";
 import { toast } from "react-hot-toast";
 import { Trip } from "@/types/dashboard";
 
-// (Keep your Trip and JoinRequest type definitions here or import them from a types file)
-
 export function useHostingData() {
     const { status } = useSession();
     const axiosAuth = useAxiosAuth();
@@ -35,7 +33,7 @@ export function useHostingData() {
             await axiosAuth.patch(`/api/requests/${requestId}/${action}`);
             toast.dismiss(loadingToast);
             toast.success(action === "accepted" ? "Request Accepted!" : "Request Rejected.");
-            fetchHostedTrips(); // Refresh data
+            fetchHostedTrips();
         } catch (error) {
             console.error(error);
             toast.dismiss(loadingToast);
@@ -44,7 +42,6 @@ export function useHostingData() {
     };
 
     const handleDeleteTrip = async (tripId: number) => {
-        if (!confirm("Are you sure? This will delete the trip and all requests.")) return;
         const loadingToast = toast.loading("Deleting trip...");
         try {
             await axiosAuth.delete(`/api/trips/${tripId}`);
